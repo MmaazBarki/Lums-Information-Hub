@@ -1,294 +1,282 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
   Typography, 
   Drawer, 
-  List, 
-  ListItem, 
-  ListItemText,
   Box,
   CssBaseline,
   ThemeProvider,
-  createTheme,
   IconButton,
-  ListItemIcon,
-  ListItemButton,
-  Divider,
   Container,
-  Paper,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  Grid,
+  PaletteMode,
   useMediaQuery
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import MailIcon from '@mui/icons-material/Mail';
-import PostAddIcon from '@mui/icons-material/PostAdd';
-import SchoolIcon from '@mui/icons-material/School';
-import CloseIcon from '@mui/icons-material/Close';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-const drawerWidth = 240;
+// Import components
+import Sidebar from './components/layout/Sidebar/Sidebar';
+import ThemeToggle from './components/layout/ThemeToggle/ThemeToggle';
+import Dashboard from './components/pages/Dashboard/Dashboard';
+import Messages from './components/pages/Messages/Messages';
+import Posts from './components/pages/Posts/Posts';
+import Courses from './components/pages/Courses/Courses';
 
-const App = () => {
+// Import theme
+import { getTheme } from './theme/theme';
+
+// Main layout component that includes the sidebar and content
+const Layout = () => {
+  // Drawer state
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('Dashboard');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(true);
+  
+  // Theme state
+  const [mode, setMode] = useState<PaletteMode>('light');
+  
+  // Get current location from React Router
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Extract the active section from the URL path
+  const getActiveSection = () => {
+    const path = location.pathname.split('/')[1] || 'dashboard';
+    return path.charAt(0).toUpperCase() + path.slice(1);
+  };
+  
+  const activeSection = getActiveSection();
+  
+  // Media queries for responsive design
   const isMobile = useMediaQuery('(max-width:600px)');
   
-  const theme = createTheme({
-    palette: {
-      primary: {
-        main: '#1976d2',
-      },
-      secondary: {
-        main: '#dc004e',
-      },
-    },
-  });
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon /> },
-    { text: 'Messages', icon: <MailIcon /> },
-    { text: 'Posts', icon: <PostAddIcon /> },
-    { text: 'Courses', icon: <SchoolIcon /> }
-  ];
-
+  // Calculate drawer width based on open/closed state
+  const drawerWidth = isDrawerOpen ? 240 : 64;
+  
+  // Create theme based on current mode
+  const theme = useMemo(() => getTheme(mode), [mode]);
+  
+  // Toggle drawer open/closed
+  const toggleDrawer = () => {
+    setIsDrawerOpen(!isDrawerOpen);
+  };
+  
+  // Toggle mobile drawer
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  
+  // Function to handle navigation when sidebar item is clicked
+  const handleSectionChange = (section: string) => {
+    navigate(`/${section.toLowerCase()}`);
+  };
+  
+  // Toggle theme mode (light/dark)
+  const toggleColorMode = () => {
+    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+  };
 
-  const handleMenuItemClick = (text) => {
-    setActiveSection(text);
+  // Save/restore theme preference from localStorage
+  useEffect(() => {
+    const savedMode = localStorage.getItem('theme-mode');
+    if (savedMode === 'dark' || savedMode === 'light') {
+      setMode(savedMode);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('theme-mode', mode);
+  }, [mode]);
+
+  // Close the drawer when in mobile view
+  useEffect(() => {
     if (isMobile) {
-      setMobileOpen(false);
+      setIsDrawerOpen(false);
     }
-  };
-
-  const drawer = (
-    <>
-      <Toolbar 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center'
-        }}
-      >
-        <Typography variant="h6" noWrap component="div">
-          LUMS Info Hub
-        </Typography>
-        {isMobile && (
-          <IconButton onClick={handleDrawerToggle}>
-            <CloseIcon />
-          </IconButton>
-        )}
-      </Toolbar>
-      <Divider />
-      <Box sx={{ overflow: 'auto' }}>
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton 
-                selected={activeSection === item.text}
-                onClick={() => handleMenuItemClick(item.text)}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(25, 118, 210, 0.12)',
-                  },
-                }}
-              >
-                <ListItemIcon>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-    </>
-  );
-
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'Dashboard':
-        return (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    Recent Announcements
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Latest updates and announcements from LUMS.
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small">View All</Button>
-                </CardActions>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    Upcoming Events
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Check out upcoming events and activities.
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small">View Calendar</Button>
-                </CardActions>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    Quick Links
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Access frequently used resources.
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button size="small">Resources</Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          </Grid>
-        );
-      case 'Messages':
-        return (
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" gutterBottom>
-              Messages
-            </Typography>
-            <Typography paragraph>
-              Your message inbox will appear here.
-            </Typography>
-            <Button variant="contained">New Message</Button>
-          </Paper>
-        );
-      case 'Posts':
-        return (
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" gutterBottom>
-              Posts
-            </Typography>
-            <Typography paragraph>
-              Recent posts and discussions will appear here.
-            </Typography>
-            <Button variant="contained">Create Post</Button>
-          </Paper>
-        );
-      case 'Courses':
-        return (
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" gutterBottom>
-              Courses
-            </Typography>
-            <Typography paragraph>
-              Your enrolled courses will appear here.
-            </Typography>
-            <Button variant="contained">Browse Courses</Button>
-          </Paper>
-        );
-      default:
-        return (
-          <Typography paragraph>
-            Select a menu item to view content.
-          </Typography>
-        );
-    }
-  };
+  }, [isMobile]);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex' }}>
-        <AppBar
-          position="fixed"
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        {/* Unified Top Bar */}
+        <AppBar 
+          position="fixed" 
+          elevation={0}
           sx={{
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
-            ml: { sm: `${drawerWidth}px` },
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            backgroundColor: (theme) => theme.palette.background.default,
+            borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
           }}
         >
-          <Toolbar>
+          <Toolbar sx={{ minHeight: 64 }}>
+            {/* Mobile menu button */}
             <IconButton
               color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ mr: 2, display: { sm: 'none' } }}
+              sx={{ 
+                display: { sm: 'none' }, 
+                mr: 1,
+                color: (theme) => theme.palette.text.primary 
+              }}
             >
               <MenuIcon />
             </IconButton>
-            <Typography variant="h6" noWrap component="div">
-              {activeSection}
+            
+            {/* Desktop toggle button */}
+            <IconButton
+              onClick={toggleDrawer}
+              sx={{ 
+                display: { xs: 'none', sm: 'flex' },
+                mr: 2,
+                color: (theme) => theme.palette.text.primary
+              }}
+            >
+              {isDrawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            </IconButton>
+
+            <Typography 
+              variant="h6" 
+              noWrap 
+              component="div"
+              sx={{ 
+                color: (theme) => theme.palette.text.primary,
+                fontWeight: 500
+              }}
+            >
+              LUMS Info Hub
             </Typography>
+
+            <Box sx={{ flexGrow: 1 }} />
+            
+            {/* Theme toggle button */}
+            <ThemeToggle toggleColorMode={toggleColorMode} />
           </Toolbar>
         </AppBar>
-        
-        <Box
-          component="nav"
-          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        >
-          {/* Mobile drawer */}
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile
-            }}
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              '& .MuiDrawer-paper': {
-                boxSizing: 'border-box',
-                width: drawerWidth,
-              },
-            }}
-          >
-            {drawer}
-          </Drawer>
-          
-          {/* Desktop drawer */}
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: 'none', sm: 'block' },
-              '& .MuiDrawer-paper': {
-                boxSizing: 'border-box',
-                width: drawerWidth,
-              },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        </Box>
-        
-        <Box
-          component="main"
-          sx={{
+
+        {/* Main Content Area */}
+        <Box 
+          sx={{ 
+            display: 'flex', 
             flexGrow: 1,
-            p: 3,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
-            mt: { xs: 8, sm: 8 } // Add margin top to account for AppBar
+            mt: '64px', // Height of the top bar
+            overflow: 'hidden'
           }}
         >
-          <Container maxWidth="lg" sx={{ mt: 2 }}>
-            {renderContent()}
-          </Container>
+          {/* Navigation Drawer */}
+          <Box
+            component="nav"
+            sx={{ 
+              width: { sm: drawerWidth }, 
+              flexShrink: { sm: 0 },
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              })
+            }}
+          >
+            {/* Mobile drawer */}
+            <Drawer
+              variant="temporary"
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              ModalProps={{
+                keepMounted: true,
+              }}
+              sx={{
+                display: { xs: 'block', sm: 'none' },
+                '& .MuiDrawer-paper': {
+                  boxSizing: 'border-box',
+                  width: drawerWidth,
+                  mt: '64px', // Height of the top bar
+                  height: `calc(100% - 64px)`,
+                },
+              }}
+            >
+              <Sidebar 
+                activeSection={activeSection}
+                setActiveSection={handleSectionChange}
+                mobileOpen={mobileOpen}
+                handleDrawerToggle={handleDrawerToggle}
+                drawerWidth={drawerWidth}
+                isDrawerOpen={isDrawerOpen}
+                toggleDrawer={toggleDrawer}
+              />
+            </Drawer>
+            
+            {/* Desktop drawer */}
+            <Drawer
+              variant="permanent"
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                '& .MuiDrawer-paper': {
+                  boxSizing: 'border-box',
+                  width: drawerWidth,
+                  mt: '64px', // Height of the top bar
+                  height: `calc(100% - 64px)`,
+                  overflowX: 'hidden',
+                  borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+                  transition: theme.transitions.create('width', {
+                    easing: theme.transitions.easing.sharp,
+                    duration: theme.transitions.duration.enteringScreen,
+                  }),
+                },
+              }}
+              open
+            >
+              <Sidebar 
+                activeSection={activeSection}
+                setActiveSection={handleSectionChange}
+                mobileOpen={mobileOpen}
+                handleDrawerToggle={handleDrawerToggle}
+                drawerWidth={drawerWidth}
+                isDrawerOpen={isDrawerOpen}
+                toggleDrawer={toggleDrawer}
+              />
+            </Drawer>
+          </Box>
+
+          {/* Main Content */}
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              width: { sm: `calc(100% - ${drawerWidth}px)` },
+              overflow: 'auto',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+            }}
+          >
+            <Container maxWidth="lg">
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/posts" element={<Posts />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Container>
+          </Box>
         </Box>
       </Box>
     </ThemeProvider>
+  );
+};
+
+// Main App component that wraps everything with BrowserRouter
+const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <Layout />
+    </BrowserRouter>
   );
 };
 
