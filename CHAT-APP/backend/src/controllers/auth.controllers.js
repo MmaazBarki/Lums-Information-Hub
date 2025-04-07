@@ -1,3 +1,4 @@
+import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js"
 import  bcrypt from "bcryptjs"
@@ -12,6 +13,13 @@ export const signup = async (req, res) => {
 
         if (password.length < 6) {
             return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/; // At least one capital letter and one special character
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ 
+                message: "Password must contain at least one capital letter and one special character" 
+            });
         }
 
         // Validate role
@@ -75,11 +83,11 @@ export const login = async (req, res) => {
         }
         const user = await User.findOne({email})
         if(!user){
-            return res.status(400).json({message: "Invalid Credentials"})
+            return res.status(400).json({message: "Email not found"})
         }
         const isPasswordCorrect = await bcrypt.compare(password, user.password)
         if(!isPasswordCorrect){
-            return res.status(400).json({message: "Invalid Credentials"})
+            return res.status(400).json({message: "Invalid Password"})
         }
 
         generateToken(user._id, res)
@@ -107,3 +115,68 @@ export const logout = (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { profilePic, major, password, CV_link } = req.body;
+        const userId = req.user._id;
+
+        // Initialize an object to hold the fields to update
+        const updates = {};
+
+        // Update profile picture if provided
+        if (profilePic) {
+            const uploadResponse = await cloudinary.uploader.upload(profilePic);
+            updates.profilePic = uploadResponse.secure_url;
+        }
+
+        // Update major if provided
+        if (major) {
+            updates.major = major;
+        }
+
+        // Update password if provided
+        if (password) {
+            if (password.length < 6) {
+                return res.status(400).json({ message: "Password must be at least 6 characters" });
+            }
+
+            const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/; // At least one capital letter and one special character
+            if (!passwordRegex.test(password)) {
+                return res.status(400).json({
+                    message: "Password must contain at least one capital letter and one special character",
+                });
+            }
+
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            updates.password = hashedPassword;
+        }
+
+        // Update CV link if provided
+        if (CV) {
+            const uploadResponse = await cloudinary.uploader.upload(CV);
+            updates.CV = uploadResponse.secure_url; // Store the secure URL of the uploaded CV image
+        }
+
+        // Update the user in the database
+        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
+
+
+        res.status(200).json(updatedUser);
+        
+    } catch (error) {
+        console.log("Error when updating profile: ", error);
+        res.status(500).json({message: "Internal server error" });
+    }
+};
+
+export const checkAuth = (req, res) => {
+    try {
+        res.status(200).json(req.user);
+        
+    } catch (error) {
+        console.log("Error in checkAuth controller", error.message);
+        res.status(500).json( {message: "Internal Server Error"});
+    }
+}
