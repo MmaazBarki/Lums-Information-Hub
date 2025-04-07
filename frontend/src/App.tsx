@@ -56,7 +56,13 @@ const App: React.FC = () => {
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ 
+          width: '100%', 
+          height: '100vh',
+          padding: 0,
+          margin: 0,
+          overflow: 'hidden'
+        }}>
           <Routes>
             {/* Redirect root to login */}
             <Route path="/" element={<Navigate to="/login" replace />} />

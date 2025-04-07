@@ -7,7 +7,6 @@ import {
   ListItemText,
   List, 
   ListItem,
-  useMediaQuery,
   Tooltip,
   Avatar,
   Typography,
@@ -31,11 +30,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ 
   activeSection, 
   setActiveSection, 
-  handleDrawerToggle,
   isDrawerOpen,
 }) => {
-  const isMobile = useMediaQuery('(max-width:600px)');
-
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Messages', icon: <MailIcon />, path: '/messages' },
@@ -45,9 +41,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleMenuItemClick = (text: string) => {
     setActiveSection(text);
-    if (isMobile) {
-      handleDrawerToggle();
-    }
   };
 
   return (

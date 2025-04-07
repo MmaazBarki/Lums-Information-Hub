@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -7,10 +7,8 @@ import {
   Drawer, 
   Box,
   IconButton,
-  Container,
-  useMediaQuery
+  Container
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
@@ -28,7 +26,6 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
   // Drawer state
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   
   // Get current location from React Router
@@ -43,9 +40,6 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
   
   const activeSection = getActiveSection();
   
-  // Media queries for responsive design
-  const isMobile = useMediaQuery('(max-width:600px)');
-  
   // Calculate drawer width based on open/closed state
   const drawerWidth = isDrawerOpen ? 240 : 64;
   
@@ -54,26 +48,17 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
     setIsDrawerOpen(!isDrawerOpen);
   };
   
-  // Toggle mobile drawer
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-  
   // Function to handle navigation when sidebar item is clicked
   const handleSectionChange = (section: string) => {
     navigate(`/${section.toLowerCase()}`);
   };
 
-  // Close the drawer when in mobile view
-  useEffect(() => {
-    if (isMobile) {
-      setIsDrawerOpen(false);
-    }
-  }, [isMobile]);
+  // Dummy functions for compatibility
+  const handleDrawerToggle = () => {}; 
 
   return (
     <>
-      {/* Unified Top Bar */}
+      {/* Top Bar */}
       <AppBar 
         position="fixed" 
         elevation={0}
@@ -84,26 +69,10 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
         }}
       >
         <Toolbar sx={{ minHeight: 64 }}>
-          {/* Mobile menu button */}
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ 
-              display: { sm: 'none' }, 
-              mr: 1,
-              color: (theme) => theme.palette.text.primary 
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
-          
           {/* Desktop toggle button */}
           <IconButton
             onClick={toggleDrawer}
             sx={{ 
-              display: { xs: 'none', sm: 'flex' },
               mr: 2,
               color: (theme) => theme.palette.text.primary
             }}
@@ -143,48 +112,18 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
         <Box
           component="nav"
           sx={{ 
-            width: { sm: drawerWidth }, 
-            flexShrink: { sm: 0 },
+            width: drawerWidth, 
+            flexShrink: 0,
             transition: theme => theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             })
           }}
         >
-          {/* Mobile drawer */}
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true,
-            }}
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              '& .MuiDrawer-paper': {
-                boxSizing: 'border-box',
-                width: drawerWidth,
-                mt: '64px', // Height of the top bar
-                height: `calc(100% - 64px)`,
-              },
-            }}
-          >
-            <Sidebar 
-              activeSection={activeSection}
-              setActiveSection={handleSectionChange}
-              mobileOpen={mobileOpen}
-              handleDrawerToggle={handleDrawerToggle}
-              drawerWidth={drawerWidth}
-              isDrawerOpen={isDrawerOpen}
-              toggleDrawer={toggleDrawer}
-            />
-          </Drawer>
-          
           {/* Desktop drawer */}
           <Drawer
             variant="permanent"
             sx={{
-              display: { xs: 'none', sm: 'block' },
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
                 width: drawerWidth,
@@ -203,7 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
             <Sidebar 
               activeSection={activeSection}
               setActiveSection={handleSectionChange}
-              mobileOpen={mobileOpen}
+              mobileOpen={false}
               handleDrawerToggle={handleDrawerToggle}
               drawerWidth={drawerWidth}
               isDrawerOpen={isDrawerOpen}
@@ -218,7 +157,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
           sx={{
             flexGrow: 1,
             p: 3,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
+            width: `calc(100% - ${drawerWidth}px)`,
             overflow: 'auto',
             transition: theme => theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,

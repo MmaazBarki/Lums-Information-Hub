@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -7,7 +7,6 @@ import {
   Link,
   Alert,
   Paper,
-  Container
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
@@ -16,10 +15,6 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    console.log('Image path:', ProductShowcase);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,27 +33,26 @@ const Login: React.FC = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden'
+        backgroundColor: (theme) => theme.palette.background.default,
       }}
     >
       <Paper 
         elevation={3} 
         sx={{ 
           display: 'flex',
-          maxHeight: '80vh',
-          width: '90%',
-          maxWidth: '1000px',
+          height: '500px', // Fixed height for better vertical centering
+          width: '900px',
+          borderRadius: 2,
           overflow: 'hidden',
-          borderRadius: 2
+          position: 'relative'
         }}
       >
         {/* Left side - Image */}
         <Box
           sx={{
-            flex: 1,
-            display: { xs: 'none', md: 'block' },
+            width: '50%',
+            height: '100%',
             position: 'relative',
-            height: '100%'
           }}
         >
           <img 
@@ -70,38 +64,41 @@ const Login: React.FC = () => {
               objectFit: 'cover',
               display: 'block'
             }}
-            onError={(e) => {
-              e.currentTarget.src = '';
-              e.currentTarget.alt = 'Image failed to load';
-            }}
           />
         </Box>
 
         {/* Right side - Form */}
         <Box
           sx={{
-            width: { xs: '100%', md: '45%' },
-            p: 4,
+            width: '50%',
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center', // Center items horizontally
-            overflowY: 'auto'
+            justifyContent: 'center', // Centers content vertically
+            p: 5,
           }}
         >
-          <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
+          <Box sx={{ 
+            width: '100%',
+            maxWidth: '350px',
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center', // Additional vertical centering
+            flexGrow: 1 // Takes up available space
+          }}>
+            <Typography variant="h4" component="h1" gutterBottom textAlign="center">
               Welcome Back
             </Typography>
             
-            <Typography variant="body2" color="text.secondary" align="center" gutterBottom>
+            <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
               Please sign in to continue
             </Typography>
             
-            {error && <Alert severity="error" sx={{ mb: 2, width: '100%' }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
             
-            <form onSubmit={handleSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%' }}>
+            <form onSubmit={handleSubmit}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <TextField
                   label="Email"
                   type="email"
@@ -125,14 +122,14 @@ const Login: React.FC = () => {
                   variant="contained"
                   fullWidth
                   size="large"
-                  sx={{ mt: 2 }}
+                  sx={{ mt: 1 }}
                 >
                   Sign In
                 </Button>
               </Box>
             </form>
             
-            <Box sx={{ mt: 2, textAlign: 'center', width: '100%' }}>
+            <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Typography variant="body2">
                 Don't have an account?{' '}
                 <Link component={RouterLink} to="/signup">
@@ -140,7 +137,7 @@ const Login: React.FC = () => {
                 </Link>
               </Typography>
             </Box>
-          </Container>
+          </Box>
         </Box>
       </Paper>
     </Box>
