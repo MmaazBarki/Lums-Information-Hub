@@ -14,7 +14,7 @@ import {
   CircularProgress,
   FormHelperText,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -32,7 +32,6 @@ const Signup: React.FC = () => {
   const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
   const [profileData, setProfileData] = useState<ProfileData>({});
   const [error, setError] = useState('');
-  const navigate = useNavigate();
   
   const { signup, loading } = useAuth();
 
@@ -50,12 +49,19 @@ const Signup: React.FC = () => {
     
     // Basic validation
     if (!email || !password) {
-      setError('Please fill in all required fields');
+      setError('All fields are required');
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
+      return;
+    }
+
+    // Password validation regex - at least one capital letter and one special character
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
+    if (!passwordRegex.test(password)) {
+      setError('Password must contain at least one capital letter and one special character');
       return;
     }
 
@@ -67,7 +73,7 @@ const Signup: React.FC = () => {
     // Profile data validation for students and alumni
     if (role !== 'admin') {
       if (!profileData.name || !profileData.department) {
-        setError('Please fill in all profile information');
+        setError('Profile data is required for students and alumni');
         return;
       }
       

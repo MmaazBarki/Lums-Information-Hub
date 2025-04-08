@@ -46,17 +46,8 @@ const ProtectedRoute = ({
 
   // Check if user has the required role
   if (user && !allowedRoles.includes(user.role)) {
-    // Redirect based on user role if they're trying to access unauthorized content
-    switch (user.role) {
-      case 'student':
-        return <Navigate to="/dashboard" replace />;
-      case 'alumni':
-        return <Navigate to="/alumni-dashboard" replace />;
-      case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
-      default:
-        return <Navigate to="/dashboard" replace />;
-    }
+    // Redirect to dashboard for all user roles
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -77,16 +68,8 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Redirect to appropriate dashboard if already authenticated
   if (isAuthenticated && user) {
-    switch (user.role) {
-      case 'student':
-        return <Navigate to="/dashboard" replace />;
-      case 'alumni':
-        return <Navigate to="/alumni-dashboard" replace />;
-      case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
-      default:
-        return <Navigate to="/dashboard" replace />;
-    }
+    // Single dashboard path for all users
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

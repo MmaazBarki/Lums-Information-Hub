@@ -9,7 +9,7 @@ import {
   Paper,
   CircularProgress,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -17,7 +17,6 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
   
   const { login, loading } = useAuth();
 
@@ -27,17 +26,21 @@ const Login: React.FC = () => {
     
     // Basic validation
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError('Email and password are required');
       return;
     }
 
     try {
       await login(email, password);
-      
       // Navigation will be handled in the AuthContext based on user role
     } catch (err) {
+      console.log('Login error caught:', err);
+      console.log("type",err instanceof Error);
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     }
+    
+    // Prevent form submission completely
+    return false;
   };
 
   return (
@@ -112,38 +115,36 @@ const Login: React.FC = () => {
             
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
             
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  fullWidth
-                  required
-                  autoComplete="email"
-                />
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  fullWidth
-                  required
-                  autoComplete="current-password"
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  sx={{ mt: 1 }}
-                  disabled={loading}
-                >
-                  {loading ? <CircularProgress size={24} /> : 'Sign In'}
-                </Button>
-              </Box>
-            </form>
+            <Box component="div" sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <TextField
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                fullWidth
+                required
+                autoComplete="email"
+              />
+              <TextField
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                fullWidth
+                required
+                autoComplete="current-password"
+              />
+              <Button
+                onClick={handleSubmit}
+                variant="contained"
+                fullWidth
+                size="large"
+                sx={{ mt: 1 }}
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Sign In'}
+              </Button>
+            </Box>
             
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Typography variant="body2">
