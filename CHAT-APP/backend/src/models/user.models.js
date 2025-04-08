@@ -12,10 +12,40 @@ const userSchema = new mongoose.Schema(
             required: true,
             minlength: 6,
         },
+        alternate_email: {
+            type: String,
+            required: false,
+        },
+        major: {
+            type: String,
+            required: false,
+        },
+        highest_education: {
+            type: String,
+            required: false,
+        },
+        CV_link: { 
+                
+            type: String,
+            required: false,
+        },
         role: {
             type: String,
             enum: ["student", "alumni", "admin"],
             required: true,
+        },
+        employment_status: {
+            type: String,
+            enum: ["employed", "unemployed"],
+            required: false,
+        },
+        current_organization: {
+            type: String,
+            required: false,
+        },
+        urrent_position: {
+            type: String,
+            required: false,
         },
         profile_data: {
             type: mongoose.Schema.Types.Mixed, // JSON object for students/alumni
