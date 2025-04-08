@@ -1,111 +1,84 @@
+import { Conversation } from '../components/pages/Messages/types';
+
+interface MockConversation {
+  id: string;
+  name: string;
+  avatar?: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: number;
+}
+
 // Mock data for user conversations
-export const mockConversations = [
+export const conversations: MockConversation[] = [
   {
     id: '1',
-    name: 'Sarah Ahmed',
-    avatar: '/path/to/avatar1.jpg',
-    lastMessage: 'When is the assignment due?',
-    timestamp: '10:30 AM',
-    unread: 2,
-    isOnline: true,
+    name: 'Ahmed Khan',
+    lastMessage: 'I missed the lecture because I was sick',
+    timestamp: '10:25 AM',
+    unread: 2
   },
   {
     id: '2',
-    name: 'Ali Hassan',
-    avatar: '/path/to/avatar2.jpg',
-    lastMessage: 'Thanks for sharing the notes!',
+    name: 'Sara Ahmed',
+    lastMessage: 'I submitted the assignment. Have you checked the feedback yet?',
     timestamp: 'Yesterday',
-    unread: 0,
-    isOnline: false,
+    unread: 0
   },
   {
     id: '3',
-    name: 'Fatima Khan',
-    avatar: '/path/to/avatar3.jpg',
-    lastMessage: 'Are you coming to the study group?',
+    name: 'Dr. Ali Raza',
+    lastMessage: 'Your project proposal has been approved.',
     timestamp: 'Yesterday',
-    unread: 1,
-    isOnline: true,
+    unread: 1
   },
   {
     id: '4',
-    name: 'Ahmed Raza',
-    avatar: '/path/to/avatar4.jpg',
-    lastMessage: 'Sure, I can help with that',
+    name: 'Ibrahim Malik',
+    lastMessage: 'Great, see you at the library at 4pm',
     timestamp: 'Monday',
-    unread: 0,
-    isOnline: false,
+    unread: 0
   },
   {
     id: '5',
-    name: 'Zainab Malik',
-    avatar: '/path/to/avatar5.jpg',
-    lastMessage: 'Did you get my email?',
-    timestamp: 'Last week',
-    unread: 0,
-    isOnline: false,
+    name: 'Ayesha Tariq',
+    lastMessage: 'Works for me!',
+    timestamp: 'Sunday',
+    unread: 0
   },
   {
     id: '6',
-    name: 'Hassan Ali',
-    avatar: '/path/to/avatar6.jpg',
-    lastMessage: 'The project deadline is next Friday',
+    name: 'Study Group',
+    lastMessage: 'Agreed. Those were emphasized in the review session too.',
     timestamp: 'Last week',
-    unread: 3,
-    isOnline: true,
+    unread: 3
   },
   {
     id: '7',
-    name: 'Aisha Khan',
-    avatar: '/path/to/avatar7.jpg',
-    lastMessage: 'I\'ve submitted our group assignment',
-    timestamp: 'Apr 2',
-    unread: 0,
-    isOnline: false,
+    name: 'Project Partner',
+    lastMessage: 'Good idea. I\'ll prepare a demo of my part.',
+    timestamp: '2 weeks ago',
+    unread: 0
   },
   {
     id: '8',
-    name: 'Bilal Ahmed',
-    avatar: '/path/to/avatar8.jpg',
-    lastMessage: 'Let\'s meet at the library tomorrow',
-    timestamp: 'Mar 28',
-    unread: 0,
-    isOnline: false,
+    name: 'Class Rep',
+    lastMessage: 'Tuesday and Thursday from 2-4pm.',
+    timestamp: 'Mar 20',
+    unread: 1
   },
   {
     id: '9',
-    name: 'Maryam Nawaz',
-    avatar: '/path/to/avatar9.jpg',
-    lastMessage: 'Can you share the course outline?',
-    timestamp: 'Mar 25',
-    unread: 1,
-    isOnline: true,
+    name: 'Library Staff',
+    lastMessage: 'We also have a new collection of AI and Machine Learning books available now.',
+    timestamp: 'Mar 15',
+    unread: 0
   },
   {
     id: '10',
-    name: 'Omar Farooq',
-    avatar: '/path/to/avatar10.jpg',
-    lastMessage: 'The class is cancelled tomorrow',
-    timestamp: 'Mar 20',
-    unread: 0,
-    isOnline: false,
-  },
-  {
-    id: '11',
-    name: 'Sana Javed',
-    avatar: '/path/to/avatar11.jpg',
-    lastMessage: 'Have you started the assignment?',
-    timestamp: 'Mar 15',
-    unread: 0,
-    isOnline: false,
-  },
-  {
-    id: '12',
-    name: 'Tahir Hussain',
-    avatar: '/path/to/avatar12.jpg',
-    lastMessage: 'Did you attend the seminar?',
+    name: 'Academic Advisor',
+    lastMessage: 'Looking forward to it.',
     timestamp: 'Mar 10',
-    unread: 0,
-    isOnline: false,
+    unread: 2
   }
 ];

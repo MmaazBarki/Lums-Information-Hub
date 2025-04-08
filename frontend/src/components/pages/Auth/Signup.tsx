@@ -7,22 +7,139 @@ import {
   Link,
   Alert,
   Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  CircularProgress,
+  FormHelperText,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
+import { useAuth } from '../../../context/AuthContext';
+
+interface ProfileData {
+  name?: string;
+  department?: string;
+  graduationYear?: string;
+  rollNumber?: string;
+}
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
+  const [profileData, setProfileData] = useState<ProfileData>({});
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  
+  const { signup, loading } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle profile data change
+  const handleProfileDataChange = (field: keyof ProfileData, value: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
+    // Basic validation
     if (!email || !password) {
-      setError('Please fill in all fields');
+      setError('Please fill in all required fields');
       return;
     }
-    console.log('Signup attempt with:', { email, password });
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    // Profile data validation for students and alumni
+    if (role !== 'admin') {
+      if (!profileData.name || !profileData.department) {
+        setError('Please fill in all profile information');
+        return;
+      }
+      
+      if (role === 'student' && !profileData.rollNumber) {
+        setError('Roll number is required for students');
+        return;
+      }
+      
+      if (role === 'alumni' && !profileData.graduationYear) {
+        setError('Graduation year is required for alumni');
+        return;
+      }
+    }
+
+    try {
+      await signup({
+        email,
+        password,
+        role,
+        profile_data: role !== 'admin' ? profileData : undefined
+      });
+      
+      // Navigation will be handled in the AuthContext based on user role
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+    }
+  };
+
+  // Render role-specific profile fields
+  const renderProfileFields = () => {
+    if (role === 'admin') {
+      return null; // No profile fields for admin
+    }
+
+    return (
+      <>
+        <TextField
+          label="Full Name"
+          value={profileData.name || ''}
+          onChange={(e) => handleProfileDataChange('name', e.target.value)}
+          fullWidth
+          required
+        />
+        <TextField
+          label="Department"
+          value={profileData.department || ''}
+          onChange={(e) => handleProfileDataChange('department', e.target.value)}
+          fullWidth
+          required
+        />
+        
+        {role === 'student' && (
+          <TextField
+            label="Roll Number"
+            value={profileData.rollNumber || ''}
+            onChange={(e) => handleProfileDataChange('rollNumber', e.target.value)}
+            fullWidth
+            required
+          />
+        )}
+        
+        {role === 'alumni' && (
+          <TextField
+            label="Graduation Year"
+            value={profileData.graduationYear || ''}
+            onChange={(e) => handleProfileDataChange('graduationYear', e.target.value)}
+            fullWidth
+            required
+          />
+        )}
+      </>
+    );
   };
 
   return (
@@ -34,48 +151,77 @@ const Signup: React.FC = () => {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: (theme) => theme.palette.background.default,
+        overflow: 'hidden', // Prevent body overflow
+        p: { xs: 2, md: 0 }, // Add padding on small screens
       }}
     >
       <Paper 
         elevation={3} 
         sx={{ 
           display: 'flex',
-          height: '500px', // Fixed height for better vertical centering
-          width: '900px',
+          maxHeight: { xs: '90vh', md: '80vh' }, // Max height with viewport units
+          width: { xs: '100%', md: '900px' },
           borderRadius: 2,
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
         }}
       >
         {/* Left side - Image */}
         <Box
           sx={{
             width: '50%',
-            height: '100%',
+            display: { xs: 'none', md: 'flex' }, // Hide on small screens
+            alignItems: 'center',
+            justifyContent: 'center',
             position: 'relative',
+            bgcolor: 'primary.light',
           }}
         >
-          <img 
-            src={ProductShowcase} 
-            alt="Product Showcase" 
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block'
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}
-          />
+          >
+            <img 
+              src={ProductShowcase} 
+              alt="Product Showcase" 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          </Box>
         </Box>
 
         {/* Right side - Form */}
         <Box
           sx={{
-            width: '50%',
-            height: '100%',
+            width: { xs: '100%', md: '50%' }, // Full width on small screens
+            maxHeight: { xs: '90vh', md: '80vh' },
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center', // Centers content vertically
-            p: 5,
+            overflowY: 'auto', // Enable vertical scrolling
+            p: { xs: 3, md: 4 },
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: (theme) => 
+                theme.palette.mode === 'light' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+              borderRadius: '4px',
+            }
           }}
         >
           <Box sx={{ 
@@ -84,8 +230,7 @@ const Signup: React.FC = () => {
             mx: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center', // Additional vertical centering
-            flexGrow: 1 // Takes up available space
+            py: 2,
           }}>
             <Typography variant="h4" component="h1" gutterBottom textAlign="center">
               Create Account
@@ -98,7 +243,22 @@ const Signup: React.FC = () => {
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
             
             <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <FormControl fullWidth>
+                  <InputLabel id="role-select-label">I am a</InputLabel>
+                  <Select
+                    labelId="role-select-label"
+                    value={role}
+                    label="I am a"
+                    onChange={(e) => setRole(e.target.value as 'student' | 'alumni' | 'admin')}
+                  >
+                    <MenuItem value="student">Student</MenuItem>
+                    <MenuItem value="alumni">Alumni</MenuItem>
+                    <MenuItem value="admin">Admin</MenuItem>
+                  </Select>
+                  <FormHelperText>Select your role at LUMS</FormHelperText>
+                </FormControl>
+
                 <TextField
                   label="Email"
                   type="email"
@@ -108,6 +268,7 @@ const Signup: React.FC = () => {
                   required
                   autoComplete="email"
                 />
+                
                 <TextField
                   label="Password"
                   type="password"
@@ -116,20 +277,36 @@ const Signup: React.FC = () => {
                   fullWidth
                   required
                   autoComplete="new-password"
+                  helperText="Password must be at least 6 characters"
                 />
+                
+                <TextField
+                  label="Confirm Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  fullWidth
+                  required
+                  autoComplete="new-password"
+                />
+                
+                {/* Render role-specific profile fields */}
+                {renderProfileFields()}
+                
                 <Button
                   type="submit"
                   variant="contained"
                   fullWidth
                   size="large"
                   sx={{ mt: 1 }}
+                  disabled={loading}
                 >
-                  Sign Up
+                  {loading ? <CircularProgress size={24} /> : 'Sign Up'}
                 </Button>
               </Box>
             </form>
             
-            <Box sx={{ mt: 4, textAlign: 'center' }}>
+            <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
               <Typography variant="body2">
                 Already have an account?{' '}
                 <Link component={RouterLink} to="/login">

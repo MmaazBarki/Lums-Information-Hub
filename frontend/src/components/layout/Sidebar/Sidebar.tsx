@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Box,
   ListItemIcon,
@@ -10,12 +10,15 @@ import {
   Tooltip,
   Avatar,
   Typography,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MailIcon from '@mui/icons-material/Mail';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import SchoolIcon from '@mui/icons-material/School';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../../../context/AuthContext';
 
 interface SidebarProps {
   activeSection: string;
@@ -32,6 +35,17 @@ const Sidebar: React.FC<SidebarProps> = ({
   setActiveSection, 
   isDrawerOpen,
 }) => {
+  const { logout, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Get user information from auth context
+  const userInitials = user?.profile_data?.name
+    ? `${user.profile_data.name.split(' ')[0][0]}${user.profile_data.name.split(' ')[1]?.[0] || ''}`
+    : user?.email?.[0]?.toUpperCase() || 'U';
+  
+  const displayName = user?.profile_data?.name || user?.email || 'User';
+  const role = user?.role || 'User';
+
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Messages', icon: <MailIcon />, path: '/messages' },
@@ -41,6 +55,15 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleMenuItemClick = (text: string) => {
     setActiveSection(text);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    }
   };
 
   return (
@@ -115,33 +138,49 @@ const Sidebar: React.FC<SidebarProps> = ({
             p: 2,
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: 2,
             minHeight: 64,
           }}
         >
-          <Avatar 
-            sx={{ 
-              width: 40, 
-              height: 40,
-              bgcolor: 'primary.main'
-            }}
-          >
-            JD
-          </Avatar>
-          {isDrawerOpen && (
-            <Box sx={{ 
-              minWidth: 0,
-              opacity: isDrawerOpen ? 1 : 0,
-              transition: (theme) => theme.transitions.create('opacity'),
-            }}>
-              <Typography noWrap variant="body2" fontWeight="500">
-                John Doe
-              </Typography>
-              <Typography noWrap variant="caption" color="text.secondary">
-                Student
-              </Typography>
-            </Box>
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar 
+              sx={{ 
+                width: 40, 
+                height: 40,
+                bgcolor: 'primary.main'
+              }}
+            >
+              {userInitials}
+            </Avatar>
+            {isDrawerOpen && (
+              <Box sx={{ 
+                minWidth: 0,
+                opacity: isDrawerOpen ? 1 : 0,
+                transition: (theme) => theme.transitions.create('opacity'),
+              }}>
+                <Typography noWrap variant="body2" fontWeight="500">
+                  {displayName}
+                </Typography>
+                <Typography noWrap variant="caption" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
+                  {role}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          
+          <Tooltip title="Logout">
+            <IconButton 
+              onClick={handleLogout}
+              sx={{
+                opacity: isDrawerOpen ? 1 : 0,
+                visibility: isDrawerOpen ? 'visible' : 'hidden',
+                transition: (theme) => theme.transitions.create(['opacity', 'visibility']),
+              }}
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
     </Box>

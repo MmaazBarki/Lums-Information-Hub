@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -19,6 +19,7 @@ import Dashboard from '../../pages/Dashboard/Dashboard';
 import Messages from '../../pages/Messages/Messages';
 import Posts from '../../pages/Posts/Posts';
 import Courses from '../../pages/Courses/Courses';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LayoutProps {
   toggleColorMode: () => void;
@@ -31,11 +32,18 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
   // Get current location from React Router
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Extract the active section from the URL path
   const getActiveSection = () => {
-    const path = location.pathname.split('/')[1] || 'dashboard';
-    return path.charAt(0).toUpperCase() + path.slice(1);
+    const path = location.pathname.split('/')[1] || '';
+    
+    if (path.includes('dashboard')) return 'Dashboard';
+    if (path === 'messages') return 'Messages';
+    if (path === 'posts') return 'Posts';
+    if (path === 'courses') return 'Courses';
+    
+    return 'Dashboard';
   };
   
   const activeSection = getActiveSection();
@@ -50,6 +58,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
   
   // Function to handle navigation when sidebar item is clicked
   const handleSectionChange = (section: string) => {
+    // Simplified navigation - all users go to the same dashboard route
     navigate(`/${section.toLowerCase()}`);
   };
 
@@ -89,7 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
               fontWeight: 500
             }}
           >
-            LUMS Info Hub
+            LUMS Info Hub {user && `- ${user.role.charAt(0).toUpperCase() + user.role.slice(1)} Portal`}
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
@@ -167,12 +176,16 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
         >
           <Container maxWidth="lg">
             <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/messages" element={<Messages />} />
+              {/* Single dashboard for all roles */}
+              <Route path="/dashboard" element={<Dashboard userType={user?.role || 'student'} />} />
+              
+              {/* Common routes for all users */}
+              <Route path="/messages/*" element={<Messages />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/courses" element={<Courses />} />
+              
+              {/* Only redirect the root path to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </Container>
         </Box>

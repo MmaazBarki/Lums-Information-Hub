@@ -7,22 +7,37 @@ import {
   Link,
   Alert,
   Paper,
+  CircularProgress,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
+import { useAuth } from '../../../context/AuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  
+  const { login, loading } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    
+    // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
     }
-    console.log('Login attempt with:', { email, password });
+
+    try {
+      await login(email, password);
+      
+      // Navigation will be handled in the AuthContext based on user role
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+    }
   };
 
   return (
@@ -123,8 +138,9 @@ const Login: React.FC = () => {
                   fullWidth
                   size="large"
                   sx={{ mt: 1 }}
+                  disabled={loading}
                 >
-                  Sign In
+                  {loading ? <CircularProgress size={24} /> : 'Sign In'}
                 </Button>
               </Box>
             </form>
