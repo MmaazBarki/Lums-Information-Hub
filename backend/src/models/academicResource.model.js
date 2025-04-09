@@ -6,6 +6,10 @@ const academicResourceSchema = new mongoose.Schema({
         ref: "User", // Will be either student or alumni
         required: true,
     },
+    uploader_name: {
+        type: String,
+        required: true,
+    },
     course_code: {
         type: String,
         required: true,
@@ -16,6 +20,23 @@ const academicResourceSchema = new mongoose.Schema({
         required: true,
     },
     file_url: {
+        type: String,
+        required: true,
+    },
+    file_type: {
+        type: String,
+        required: true,
+        default: "pdf"
+    },
+    file_size: {
+        type: Number,
+        required: true,
+    },
+    downloads: {
+        type: Number,
+        default: 0,
+    },
+    description: {
         type: String,
         required: true,
     },

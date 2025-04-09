@@ -5,7 +5,7 @@ import { protectRoute } from "../middleware/auth.middleware.js"
 
 const router = express.Router();
 
-router.post("/", protectRoute, uploadResource); // Upload a new resource
+router.post("/upload", protectRoute, uploadResource); // Upload a new resource
 router.get("/:course_code", getResourcesByCourse); // Get resources for a course
 
 export default router;

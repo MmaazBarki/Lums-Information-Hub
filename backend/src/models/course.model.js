@@ -10,6 +10,18 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    description: {
+        type: String,
+        required: true,
+    },
+    department: {
+        type: String,
+        required: true,
+    },
+    credits: {
+        type: Number,
+        required: true,
+    }
 }, { timestamps: false }); // No need for created_at/updated_at unless for audit trail
 
 const Course = mongoose.model("Course", courseSchema);
