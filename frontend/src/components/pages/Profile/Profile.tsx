@@ -27,7 +27,7 @@ import LockIcon from '@mui/icons-material/Lock';
 interface ProfileProps {}
 
 const Profile: React.FC<ProfileProps> = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -36,7 +36,7 @@ const Profile: React.FC<ProfileProps> = () => {
   const [profileFormData, setProfileFormData] = useState({
     name: user?.profile_data?.name || '',
     email: user?.email || '',
-    alternateEmail: user?.profile_data?.alternateEmail || '',
+    alternateEmail: user?.profile_data?.alternate_email || '',
     department: user?.profile_data?.department || '',
     batch: user?.profile_data?.batch || '',
     bio: user?.profile_data?.bio || '',
@@ -86,7 +86,7 @@ const Profile: React.FC<ProfileProps> = () => {
       setProfileFormData({
         name: user?.profile_data?.name || '',
         email: user?.email || '',
-        alternateEmail: user?.profile_data?.alternateEmail || '',
+        alternateEmail: user?.profile_data?.alternate_email || '',
         department: user?.profile_data?.department || '',
         batch: user?.profile_data?.batch || '',
         bio: user?.profile_data?.bio || '',
@@ -98,11 +98,37 @@ const Profile: React.FC<ProfileProps> = () => {
   // Submit profile changes
   const handleSubmitProfile = async () => {
     try {
-      // Here you would typically call an API to update the profile
-      // For now we'll just simulate a successful update
+      // Call the backend API to update profile
+      const response = await fetch('http://localhost:5001/api/auth/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important for sending cookies
+        body: JSON.stringify({
+          name: profileFormData.name,
+          department: profileFormData.department,
+          alternate_email: profileFormData.alternateEmail,
+          batch: profileFormData.batch,
+          bio: profileFormData.bio,
+          // Only include necessary fields that backend expects
+        }),
+      });
       
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const updatedUser = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(updatedUser.message || 'Failed to update profile');
+      }
+      
+      // Update both the localStorage and React context with the new user data
+      if (updatedUser) {
+        // Use the updateUser function from AuthContext to update both state and localStorage
+        updateUser({
+          ...user,
+          profile_data: updatedUser.profile_data || user?.profile_data
+        });
+      }
       
       setNotification({
         type: 'success',
@@ -113,7 +139,7 @@ const Profile: React.FC<ProfileProps> = () => {
     } catch (error) {
       setNotification({
         type: 'error',
-        message: 'Failed to update profile'
+        message: error instanceof Error ? error.message : 'Failed to update profile'
       });
       console.error('Error updating profile:', error);
     }
@@ -340,7 +366,7 @@ const Profile: React.FC<ProfileProps> = () => {
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Alternate Email</Typography>
-                      <Typography variant="body1">{user?.profile_data?.alternateEmail || 'Not specified'}</Typography>
+                      <Typography variant="body1">{user?.profile_data?.alternate_email || 'Not specified'}</Typography>
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Department</Typography>
