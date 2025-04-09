@@ -136,9 +136,16 @@ const Profile: React.FC<ProfileProps> = () => {
     if (!passwordFormData.newPassword) {
       errors.newPassword = 'New password is required';
       valid = false;
-    } else if (passwordFormData.newPassword.length < 8) {
-      errors.newPassword = 'Password must be at least 8 characters';
+    } else if (passwordFormData.newPassword.length < 6) {
+      errors.newPassword = 'Password must be at least 6 characters';
       valid = false;
+    } else {
+      // Password validation regex - at least one capital letter and one special character
+      const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
+      if (!passwordRegex.test(passwordFormData.newPassword)) {
+        errors.newPassword = 'Password must contain at least one capital letter and one special character';
+        valid = false;
+      }
     }
 
     if (passwordFormData.newPassword !== passwordFormData.confirmPassword) {
@@ -155,15 +162,28 @@ const Profile: React.FC<ProfileProps> = () => {
     if (!validatePasswordForm()) return;
     
     try {
-      // Here you would typically call an API to update the password
-      // For now we'll just simulate a successful update
+      // Call the backend API to update the password
+      const response = await fetch('http://localhost:5001/api/auth/update-password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important for sending cookies
+        body: JSON.stringify({
+          oldPassword: passwordFormData.currentPassword,
+          newPassword: passwordFormData.newPassword
+        }),
+      });
       
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to change password');
+      }
       
       setNotification({
         type: 'success',
-        message: 'Password changed successfully'
+        message: data.message || 'Password changed successfully'
       });
       
       setPasswordDialogOpen(false);
@@ -175,7 +195,7 @@ const Profile: React.FC<ProfileProps> = () => {
     } catch (error) {
       setNotification({
         type: 'error',
-        message: 'Failed to change password'
+        message: error instanceof Error ? error.message : 'Failed to change password'
       });
       console.error('Error changing password:', error);
     }
