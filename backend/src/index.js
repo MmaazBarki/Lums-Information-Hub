@@ -8,7 +8,7 @@ import { connectDB } from "./lib/db.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
-// import courseRoutes from "./routes/course.routes.js"; // optional
+import courseRoutes from "./routes/courses.routes.js";
 
 
 dotenv.config();
@@ -25,12 +25,11 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/auth", authRoutes)
-app.use("/api/message", messageRoutes) // Faraz: Message Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/message", messageRoutes); // Faraz: Message Routes
 
 app.use("/api/resources", academicResourceRoutes);
-// app.use("/api/courses", courseRoutes); // optional, if you want API to create/read courses
-
+app.use("/api/courses", courseRoutes); 
 
 server.listen(PORT, ()=>{
     console.log("server is running on port: "+ PORT);
