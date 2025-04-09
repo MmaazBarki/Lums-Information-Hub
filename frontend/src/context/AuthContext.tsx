@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (userData: SignupData) => Promise<void>;
   logout: () => Promise<void>;
+  updateUser: (userData: Partial<UserInfo>) => void;
   isAuthenticated: boolean;
 }
 
@@ -31,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: async () => {},
+  updateUser: () => {},
   isAuthenticated: false
 });
 
@@ -202,14 +204,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Function to update user data both in state and localStorage
+  const updateUser = (userData: Partial<UserInfo>) => {
+    if (!user) return; // Don't update if no user is logged in
+    
+    const updatedUser = {
+      ...user,
+      ...userData,
+    };
+    
+    // Update state
+    setUser(updatedUser);
+    
+    // Update localStorage
+    localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+  };
+
   return (
     <AuthContext.Provider 
       value={{
         user,
-        loading,//check  this for login errors
+        loading,//check this for login errors
         login,
         signup,
         logout,
+        updateUser,
         isAuthenticated: !!user,
       }}
     >
