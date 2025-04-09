@@ -118,10 +118,54 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { role, full_name, graduation_year, department, alternate_email  } = req.body;
+        const { role, name, graduation_year, department, alternate_email  } = req.body;
         const userId = req.user._id;
 
-        const updates = {};
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // find the user and store all fields in database entry in local variable
+        const updated_user_info = { ...user.toObject() };
+
+        if (role) {
+            updated_user_info.role = role;
+        }
+
+        if (name) {
+            if (!updated_user_info.profile_data) {
+                updated_user_info.profile_data = {};
+            }
+            updated_user_info.profile_data.name = name;
+        }
+
+        if (graduation_year) {
+            if (!updated_user_info.profile_data) {
+                updated_user_info.profile_data = {};
+            }
+            updated_user_info.profile_data.graduation_year = graduation_year;
+        }
+
+        if (department) {
+            if (!updated_user_info.profile_data) {
+                updated_user_info.profile_data = {};
+            }
+            updated_user_info.profile_data.department = department;
+        }
+
+        if (alternate_email) {
+            if (!updated_user_info.profile_data) {
+                updated_user_info.profile_data = {};
+            }
+            updated_user_info.profile_data.alternate_email = alternate_email;
+        }
+
+        // Update the user in the database
+        const updatedUser = await User.findByIdAndUpdate(userId, updated_user_info, { new: true });
+
+        res.status(200).json(updatedUser);
+
 
         // profile picture feature implementation will be in the future
         // if (profilePic) {
@@ -129,42 +173,12 @@ export const updateProfile = async (req, res) => {
             // updates.profilePic = uploadResponse.secure_url;
         // }
 
-        // allow update role from student to alumni when student graduates
-        if (role) {
-            updates.role = role;
-        }
 
         // Implementation for CV upload will be in the future
         // if (CV) {
         //     const uploadResponse = await cloudinary.uploader.upload(CV);
         //     // updates.CV = uploadResponse.secure_url; // Store the secure URL of the uploaded CV image
         // }
-
-        if(full_name) {
-            profile_data.full_name = full_name;
-            updates.profile_data = profile_data;
-        }
-
-        if(graduation_year) {
-            profile_data.graduation_year = graduation_year;
-            updates.profile_data = profile_data;
-        }
-
-        if(department) {
-            profile_data.department = department;
-            updates.profile_data = profile_data;
-        }
-
-        if(alternate_email) {
-            profile_data.alternate_email = alternate_email;
-            updates.profile_data = profile_data;
-        }
-
-        // Update the user in the database
-        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
-
-
-        res.status(200).json(updatedUser);
         
     } catch (error) {
         console.log("Error when updating profile: ", error);
