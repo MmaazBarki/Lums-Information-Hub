@@ -36,7 +36,7 @@ const Profile: React.FC<ProfileProps> = () => {
   const [profileFormData, setProfileFormData] = useState({
     name: user?.profile_data?.name || '',
     email: user?.email || '',
-    phone: user?.profile_data?.phone || '',
+    alternateEmail: user?.profile_data?.alternateEmail || '',
     department: user?.profile_data?.department || '',
     batch: user?.profile_data?.batch || '',
     bio: user?.profile_data?.bio || '',
@@ -86,7 +86,7 @@ const Profile: React.FC<ProfileProps> = () => {
       setProfileFormData({
         name: user?.profile_data?.name || '',
         email: user?.email || '',
-        phone: user?.profile_data?.phone || '',
+        alternateEmail: user?.profile_data?.alternateEmail || '',
         department: user?.profile_data?.department || '',
         batch: user?.profile_data?.batch || '',
         bio: user?.profile_data?.bio || '',
@@ -276,9 +276,9 @@ const Profile: React.FC<ProfileProps> = () => {
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Phone Number"
-                        name="phone"
-                        value={profileFormData.phone}
+                        label="Alternate Email"
+                        name="alternateEmail"
+                        value={profileFormData.alternateEmail}
                         onChange={handleProfileChange}
                       />
                     </Grid>
@@ -319,8 +319,8 @@ const Profile: React.FC<ProfileProps> = () => {
                       <Typography variant="body1">{user?.email || 'Not specified'}</Typography>
                     </Grid>
                     <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="text.secondary">Phone Number</Typography>
-                      <Typography variant="body1">{user?.profile_data?.phone || 'Not specified'}</Typography>
+                      <Typography variant="subtitle2" color="text.secondary">Alternate Email</Typography>
+                      <Typography variant="body1">{user?.profile_data?.alternateEmail || 'Not specified'}</Typography>
                     </Grid>
                     <Grid item xs={12}>
                       <Typography variant="subtitle2" color="text.secondary">Department</Typography>
@@ -442,13 +442,13 @@ const Profile: React.FC<ProfileProps> = () => {
       </Dialog>
 
       {/* Notification Snackbar */}
-      <Snackbar 
-        open={!!notification} 
-        autoHideDuration={6000} 
-        onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        {notification && 
+      {notification && (
+        <Snackbar 
+          open={true}
+          autoHideDuration={6000} 
+          onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
           <Alert 
             onClose={handleCloseNotification} 
             severity={notification.type} 
@@ -456,8 +456,8 @@ const Profile: React.FC<ProfileProps> = () => {
           >
             {notification.message}
           </Alert>
-        }
-      </Snackbar>
+        </Snackbar>
+      )}
     </Box>
 
     </Box>

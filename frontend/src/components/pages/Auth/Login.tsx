@@ -32,6 +32,14 @@ const Login: React.FC = () => {
       setLoading(false);
       return;
     }
+    
+    // Email validation including TLD check
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address with a domain extension');
+      setLoading(false);
+      return;
+    }
 
     try {
       await login(email, password);
