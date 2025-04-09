@@ -1,0 +1,341 @@
+export interface AcademicResource {
+  _id: string;
+  uploader_id: string;
+  uploader_name: string; // Not in DB schema but useful for UI
+  course_code: string;
+  topic: string;
+  description?: string;
+  file_url: string;
+  file_type: string; // Not in DB schema but useful for UI
+  file_size: string; // Not in DB schema but useful for UI
+  downloads: number; // Not in DB schema but useful for UI
+  uploaded_at: string;
+}
+
+export const mockAcademicResources: AcademicResource[] = [
+  {
+    _id: "res001",
+    uploader_id: "stu001",
+    uploader_name: "John Smith",
+    course_code: "CS 100",
+    topic: "Python Programming Basics",
+    description: "A comprehensive guide to Python programming basics including syntax, data types, control structures, and functions. Includes practical examples and exercises.",
+    file_url: "/resources/python_basics.pdf",
+    file_type: "PDF",
+    file_size: "2.4 MB",
+    downloads: 156,
+    uploaded_at: "2024-03-15T14:30:00Z"
+  },
+  {
+    _id: "res002",
+    uploader_id: "alu001",
+    uploader_name: "Sarah Johnson",
+    course_code: "CS 100",
+    topic: "Introduction to Algorithms",
+    description: "An introduction to basic algorithms and their implementation in Python. Covers searching, sorting, and basic problem-solving techniques.",
+    file_url: "/resources/intro_algorithms.pptx",
+    file_type: "PowerPoint",
+    file_size: "5.1 MB",
+    downloads: 89,
+    uploaded_at: "2024-02-28T10:15:00Z"
+  },
+  {
+    _id: "res003",
+    uploader_id: "stu002",
+    uploader_name: "Michael Brown",
+    course_code: "CS 200",
+    topic: "Advanced Data Structures",
+    description: "Comprehensive notes on advanced data structures including trees, graphs, and hash tables with implementation examples.",
+    file_url: "/resources/adv_data_structures.pdf",
+    file_type: "PDF",
+    file_size: "3.7 MB",
+    downloads: 203,
+    uploaded_at: "2024-01-10T09:45:00Z"
+  },
+  {
+    _id: "res004",
+    uploader_id: "alu002",
+    uploader_name: "Emily Davis",
+    course_code: "CS 200",
+    topic: "Algorithm Analysis Techniques",
+    description: "Guide to analyzing algorithm efficiency, time complexity, and space complexity with practical examples.",
+    file_url: "/resources/algorithm_analysis.docx",
+    file_type: "Word Document",
+    file_size: "1.9 MB",
+    downloads: 134,
+    uploaded_at: "2024-02-05T16:20:00Z"
+  },
+  {
+    _id: "res005",
+    uploader_id: "stu003",
+    uploader_name: "David Wilson",
+    course_code: "CS 300",
+    topic: "Java OOP Principles",
+    description: "Detailed explanation of object-oriented programming principles in Java, including inheritance, polymorphism, encapsulation, and abstraction.",
+    file_url: "/resources/java_oop.pdf",
+    file_type: "PDF",
+    file_size: "4.2 MB",
+    downloads: 177,
+    uploaded_at: "2024-03-20T11:30:00Z"
+  },
+  {
+    _id: "res006",
+    uploader_id: "alu003",
+    uploader_name: "Jessica Martinez",
+    course_code: "CS 300",
+    topic: "Design Patterns in OOP",
+    description: "Overview of common design patterns in object-oriented programming with implementation examples in Java and C++.",
+    file_url: "/resources/design_patterns.pptx",
+    file_type: "PowerPoint",
+    file_size: "6.3 MB",
+    downloads: 92,
+    uploaded_at: "2024-01-25T13:45:00Z"
+  },
+  {
+    _id: "res007",
+    uploader_id: "stu004",
+    uploader_name: "Robert Garcia",
+    course_code: "CS 310",
+    topic: "SQL Fundamentals",
+    description: "Introduction to SQL including database design, table creation, querying, and data manipulation. Includes exercises with PostgreSQL.",
+    file_url: "/resources/sql_fundamentals.pdf",
+    file_type: "PDF",
+    file_size: "3.1 MB",
+    downloads: 216,
+    uploaded_at: "2024-02-17T09:10:00Z"
+  },
+  {
+    _id: "res008",
+    uploader_id: "alu004",
+    uploader_name: "Jennifer Lee",
+    course_code: "CS 310",
+    topic: "NoSQL Database Systems",
+    description: "Overview of NoSQL database systems including MongoDB, Cassandra, and Redis with use cases and examples.",
+    file_url: "/resources/nosql_systems.pptx",
+    file_type: "PowerPoint",
+    file_size: "5.8 MB",
+    downloads: 108,
+    uploaded_at: "2024-03-05T14:20:00Z"
+  },
+  {
+    _id: "res009",
+    uploader_id: "stu005",
+    uploader_name: "Kevin Anderson",
+    course_code: "CS 360",
+    topic: "Agile Development Methods",
+    description: "Comprehensive guide to Agile development methodologies including Scrum, Kanban, and XP with practical implementation strategies.",
+    file_url: "/resources/agile_methods.pdf",
+    file_type: "PDF",
+    file_size: "2.9 MB",
+    downloads: 143,
+    uploaded_at: "2024-02-12T10:30:00Z"
+  },
+  {
+    _id: "res010",
+    uploader_id: "alu005",
+    uploader_name: "Amanda Thompson",
+    course_code: "CS 360",
+    topic: "Software Testing Strategies",
+    description: "Overview of different software testing strategies including unit testing, integration testing, and system testing with tools and examples.",
+    file_url: "/resources/testing_strategies.docx",
+    file_type: "Word Document",
+    file_size: "2.3 MB",
+    downloads: 119,
+    uploaded_at: "2024-01-30T15:40:00Z"
+  },
+  {
+    _id: "res011",
+    uploader_id: "stu006",
+    uploader_name: "Patricia Lopez",
+    course_code: "CS 360",
+    topic: "Project Management Tools",
+    description: "Review of popular project management tools and techniques for software development teams.",
+    file_url: "/resources/pm_tools.pptx",
+    file_type: "PowerPoint",
+    file_size: "4.5 MB",
+    downloads: 87,
+    uploaded_at: "2024-03-18T11:20:00Z"
+  },
+  {
+    _id: "res012",
+    uploader_id: "alu006",
+    uploader_name: "Charles White",
+    course_code: "CS 370",
+    topic: "Process Management in OS",
+    description: "Detailed explanation of process management in operating systems including scheduling, synchronization, and deadlock prevention.",
+    file_url: "/resources/process_management.pdf",
+    file_type: "PDF",
+    file_size: "3.4 MB",
+    downloads: 167,
+    uploaded_at: "2024-02-08T09:00:00Z"
+  },
+  {
+    _id: "res013",
+    uploader_id: "stu007",
+    uploader_name: "Lisa Clark",
+    course_code: "CS 370",
+    topic: "Memory Management Systems",
+    description: "Overview of memory management techniques in operating systems including paging, segmentation, and virtual memory.",
+    file_url: "/resources/memory_management.pdf",
+    file_type: "PDF",
+    file_size: "2.8 MB",
+    downloads: 145,
+    uploaded_at: "2024-01-15T13:50:00Z"
+  },
+  {
+    _id: "res014",
+    uploader_id: "alu007",
+    uploader_name: "Daniel Rodriguez",
+    course_code: "CS 400",
+    topic: "TCP/IP Protocol Suite",
+    description: "Comprehensive guide to the TCP/IP protocol suite with details on each layer and practical networking examples.",
+    file_url: "/resources/tcpip_suite.pptx",
+    file_type: "PowerPoint",
+    file_size: "5.6 MB",
+    downloads: 198,
+    uploaded_at: "2024-03-10T10:30:00Z"
+  },
+  {
+    _id: "res015",
+    uploader_id: "stu008",
+    uploader_name: "Michelle Scott",
+    course_code: "CS 400",
+    topic: "Network Security Fundamentals",
+    description: "Introduction to network security principles, threats, and protection mechanisms with case studies.",
+    file_url: "/resources/network_security.pdf",
+    file_type: "PDF",
+    file_size: "3.9 MB",
+    downloads: 176,
+    uploaded_at: "2024-02-20T14:15:00Z"
+  },
+  {
+    _id: "res016",
+    uploader_id: "alu008",
+    uploader_name: "Brandon Turner",
+    course_code: "CS 440",
+    topic: "Introduction to Neural Networks",
+    description: "Basic concepts of neural networks including perceptrons, activation functions, and backpropagation with Python implementation examples.",
+    file_url: "/resources/neural_networks.pdf",
+    file_type: "PDF",
+    file_size: "4.7 MB",
+    downloads: 223,
+    uploaded_at: "2024-01-20T11:00:00Z"
+  },
+  {
+    _id: "res017",
+    uploader_id: "stu009",
+    uploader_name: "Laura Gonzalez",
+    course_code: "CS 440",
+    topic: "Natural Language Processing",
+    description: "Overview of natural language processing techniques and applications with Python code examples using NLTK and spaCy.",
+    file_url: "/resources/nlp_techniques.ipynb",
+    file_type: "Jupyter Notebook",
+    file_size: "2.6 MB",
+    downloads: 112,
+    uploaded_at: "2024-03-25T15:30:00Z"
+  },
+  {
+    _id: "res018",
+    uploader_id: "alu009",
+    uploader_name: "Ryan Mitchell",
+    course_code: "CS 450",
+    topic: "Supervised Learning Algorithms",
+    description: "Comprehensive guide to supervised learning algorithms including decision trees, random forests, and support vector machines.",
+    file_url: "/resources/supervised_learning.pdf",
+    file_type: "PDF",
+    file_size: "5.2 MB",
+    downloads: 187,
+    uploaded_at: "2024-02-15T10:45:00Z"
+  },
+  {
+    _id: "res019",
+    uploader_id: "stu010",
+    uploader_name: "Thomas Nelson",
+    course_code: "CS 450",
+    topic: "Clustering Techniques",
+    description: "Overview of unsupervised learning clustering techniques including K-means, DBSCAN, and hierarchical clustering with Python implementations.",
+    file_url: "/resources/clustering.ipynb",
+    file_type: "Jupyter Notebook",
+    file_size: "3.3 MB",
+    downloads: 134,
+    uploaded_at: "2024-01-05T13:20:00Z"
+  },
+  {
+    _id: "res020",
+    uploader_id: "alu010",
+    uploader_name: "Nicole Carter",
+    course_code: "MATH 101",
+    topic: "Limits and Continuity",
+    description: "Detailed explanation of limits and continuity concepts in calculus with examples and practice problems.",
+    file_url: "/resources/limits_continuity.pdf",
+    file_type: "PDF",
+    file_size: "2.1 MB",
+    downloads: 154,
+    uploaded_at: "2024-03-02T09:30:00Z"
+  },
+  {
+    _id: "res021",
+    uploader_id: "stu011",
+    uploader_name: "Brian Phillips",
+    course_code: "MATH 101",
+    topic: "Derivatives and Applications",
+    description: "Comprehensive guide to derivatives and their applications in calculus with solved examples.",
+    file_url: "/resources/derivatives.pdf",
+    file_type: "PDF",
+    file_size: "3.5 MB",
+    downloads: 201,
+    uploaded_at: "2024-02-10T11:15:00Z"
+  },
+  {
+    _id: "res022",
+    uploader_id: "alu011",
+    uploader_name: "Rachel Green",
+    course_code: "MATH 102",
+    topic: "Integration Techniques",
+    description: "Advanced integration techniques in calculus including substitution, parts, and partial fractions with worked examples.",
+    file_url: "/resources/integration.pdf",
+    file_type: "PDF",
+    file_size: "4.3 MB",
+    downloads: 176,
+    uploaded_at: "2024-01-18T14:00:00Z"
+  },
+  {
+    _id: "res023",
+    uploader_id: "stu012",
+    uploader_name: "Christopher Evans",
+    course_code: "MATH 201",
+    topic: "Matrix Operations",
+    description: "Comprehensive guide to matrix operations including addition, multiplication, determinants, and inverses with examples.",
+    file_url: "/resources/matrix_operations.pdf",
+    file_type: "PDF",
+    file_size: "2.7 MB",
+    downloads: 143,
+    uploaded_at: "2024-03-12T10:00:00Z"
+  },
+  {
+    _id: "res024",
+    uploader_id: "alu012",
+    uploader_name: "Eric Taylor",
+    course_code: "STATS 201",
+    topic: "Probability Distributions",
+    description: "Overview of common probability distributions including normal, binomial, and Poisson with examples and applications.",
+    file_url: "/resources/probability_distributions.pptx",
+    file_type: "PowerPoint",
+    file_size: "4.9 MB",
+    downloads: 165,
+    uploaded_at: "2024-02-25T15:30:00Z"
+  },
+  {
+    _id: "res025",
+    uploader_id: "stu013",
+    uploader_name: "Elizabeth Young",
+    course_code: "STATS 201",
+    topic: "Hypothesis Testing",
+    description: "Guide to statistical hypothesis testing including t-tests, chi-square tests, and ANOVA with practical examples.",
+    file_url: "/resources/hypothesis_testing.pdf",
+    file_type: "PDF",
+    file_size: "3.2 MB",
+    downloads: 128,
+    uploaded_at: "2024-01-28T11:45:00Z"
+  }
+];
