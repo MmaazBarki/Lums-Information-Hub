@@ -32,8 +32,9 @@ const Signup: React.FC = () => {
   const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
   const [profileData, setProfileData] = useState<ProfileData>({});
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   
-  const { signup, loading } = useAuth();
+  const { signup } = useAuth();
 
   // Handle profile data change
   const handleProfileDataChange = (field: keyof ProfileData, value: string) => {
@@ -46,15 +47,18 @@ const Signup: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     // Basic validation
     if (!email || !password) {
       setError('All fields are required');
+      setLoading(false);
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
+      setLoading(false);
       return;
     }
 
@@ -62,11 +66,13 @@ const Signup: React.FC = () => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
     if (!passwordRegex.test(password)) {
       setError('Password must contain at least one capital letter and one special character');
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
       return;
     }
 
@@ -74,16 +80,19 @@ const Signup: React.FC = () => {
     if (role !== 'admin') {
       if (!profileData.name || !profileData.department) {
         setError('Profile data is required for students and alumni');
+        setLoading(false);
         return;
       }
       
       if (role === 'student' && !profileData.rollNumber) {
         setError('Roll number is required for students');
+        setLoading(false);
         return;
       }
       
       if (role === 'alumni' && !profileData.graduationYear) {
         setError('Graduation year is required for alumni');
+        setLoading(false);
         return;
       }
     }
@@ -99,6 +108,7 @@ const Signup: React.FC = () => {
       // Navigation will be handled in the AuthContext based on user role
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+      setLoading(false);
     }
   };
 

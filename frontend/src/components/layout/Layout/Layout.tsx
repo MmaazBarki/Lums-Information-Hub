@@ -19,6 +19,7 @@ import Dashboard from '../../pages/Dashboard/Dashboard';
 import Messages from '../../pages/Messages/Messages';
 import Posts from '../../pages/Posts/Posts';
 import Courses from '../../pages/Courses/Courses';
+import Profile from '../../pages/Profile/Profile';
 import { useAuth } from '../../../context/AuthContext';
 
 interface LayoutProps {
@@ -183,6 +184,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
               <Route path="/messages/*" element={<Messages />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/profile" element={<Profile />} />
               
               {/* Only redirect the root path to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

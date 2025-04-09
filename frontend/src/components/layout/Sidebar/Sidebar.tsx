@@ -134,6 +134,8 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Box sx={{ mt: 'auto' }}>
         <Divider />
         <Box
+          component={Link}
+          to="/profile"
           sx={{
             p: 2,
             display: 'flex',
@@ -141,7 +143,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             justifyContent: 'space-between',
             gap: 2,
             minHeight: 64,
+            textDecoration: 'none',
+            color: 'inherit',
+            '&:hover': {
+              backgroundColor: 'action.hover',
+            },
+            cursor: 'pointer'
           }}
+          onClick={() => setActiveSection('Profile')}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar 
@@ -171,7 +180,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           
           <Tooltip title="Logout">
             <IconButton 
-              onClick={handleLogout}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleLogout();
+              }}
               sx={{
                 opacity: isDrawerOpen ? 1 : 0,
                 visibility: isDrawerOpen ? 'visible' : 'hidden',

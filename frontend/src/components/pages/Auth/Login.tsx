@@ -17,16 +17,19 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   
-  const { login, loading } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     // Basic validation
     if (!email || !password) {
       setError('Email and password are required');
+      setLoading(false);
       return;
     }
 
@@ -35,12 +38,10 @@ const Login: React.FC = () => {
       // Navigation will be handled in the AuthContext based on user role
     } catch (err) {
       console.log('Login error caught:', err);
-      console.log("type",err instanceof Error);
+      // Ensure the error is displayed and prevent form refresh
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      setLoading(false);
     }
-    
-    // Prevent form submission completely
-    return false;
   };
 
   return (
@@ -115,36 +116,38 @@ const Login: React.FC = () => {
             
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
             
-            <Box component="div" sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <TextField
-                label="Email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                fullWidth
-                required
-                autoComplete="email"
-              />
-              <TextField
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                fullWidth
-                required
-                autoComplete="current-password"
-              />
-              <Button
-                onClick={handleSubmit}
-                variant="contained"
-                fullWidth
-                size="large"
-                sx={{ mt: 1 }}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Sign In'}
-              </Button>
-            </Box>
+            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  required
+                  autoComplete="email"
+                />
+                <TextField
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  fullWidth
+                  required
+                  autoComplete="current-password"
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  sx={{ mt: 1 }}
+                  disabled={loading}
+                >
+                  {loading ? <CircularProgress size={24} /> : 'Sign In'}
+                </Button>
+              </Box>
+            </form>
             
             <Box sx={{ mt: 4, textAlign: 'center' }}>
               <Typography variant="body2">
