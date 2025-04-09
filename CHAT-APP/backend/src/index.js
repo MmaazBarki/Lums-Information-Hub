@@ -7,6 +7,9 @@ import { connect } from "mongoose";
 import { connectDB } from "./lib/db.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import academicResourceRoutes from "./routes/academicResource.routes.js";
+// import courseRoutes from "./routes/course.routes.js"; // optional
+
 
 dotenv.config();
 
@@ -24,6 +27,9 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoutes)
 app.use("/api/message", messageRoutes) // Faraz: Message Routes
+
+app.use("/api/resources", academicResourceRoutes);
+// app.use("/api/courses", courseRoutes); // optional, if you want API to create/read courses
 
 
 server.listen(PORT, ()=>{

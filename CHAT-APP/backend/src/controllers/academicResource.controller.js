@@ -29,7 +29,7 @@ export const getResourcesByCourse = async (req, res) => {
 
     try {
         const resources = await AcademicResource.find({ course_code })
-            .populate("uploader_id", "email role");
+            .populate("uploader_id", "email role");// can have error here
         res.status(200).json(resources);
     } catch (error) {
         console.error("Fetch Error:", error.message);
