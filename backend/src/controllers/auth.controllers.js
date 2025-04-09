@@ -118,45 +118,46 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { profilePic, major, password, CV_link } = req.body;
+        const { role, full_name, graduation_year, department, alternate_email  } = req.body;
         const userId = req.user._id;
 
-        // Initialize an object to hold the fields to update
         const updates = {};
 
-        // Update profile picture if provided
-        if (profilePic) {
-            const uploadResponse = await cloudinary.uploader.upload(profilePic);
-            updates.profilePic = uploadResponse.secure_url;
+        // profile picture feature implementation will be in the future
+        // if (profilePic) {
+            // const uploadResponse = await cloudinary.uploader.upload(profilePic);
+            // updates.profilePic = uploadResponse.secure_url;
+        // }
+
+        // allow update role from student to alumni when student graduates
+        if (role) {
+            updates.role = role;
         }
 
-        // Update major if provided
-        if (major) {
-            updates.major = major;
+        // Implementation for CV upload will be in the future
+        // if (CV) {
+        //     const uploadResponse = await cloudinary.uploader.upload(CV);
+        //     // updates.CV = uploadResponse.secure_url; // Store the secure URL of the uploaded CV image
+        // }
+
+        if(full_name) {
+            profile_data.full_name = full_name;
+            updates.profile_data = profile_data;
         }
 
-        // Update password if provided
-        if (password) {
-            if (password.length < 6) {
-                return res.status(400).json({ message: "Password must be at least 6 characters" });
-            }
-
-            const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/; // At least one capital letter and one special character
-            if (!passwordRegex.test(password)) {
-                return res.status(400).json({
-                    message: "Password must contain at least one capital letter and one special character",
-                });
-            }
-
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-            updates.password = hashedPassword;
+        if(graduation_year) {
+            profile_data.graduation_year = graduation_year;
+            updates.profile_data = profile_data;
         }
 
-        // Update CV link if provided
-        if (CV) {
-            const uploadResponse = await cloudinary.uploader.upload(CV);
-            updates.CV = uploadResponse.secure_url; // Store the secure URL of the uploaded CV image
+        if(department) {
+            profile_data.department = department;
+            updates.profile_data = profile_data;
+        }
+
+        if(alternate_email) {
+            profile_data.alternate_email = alternate_email;
+            updates.profile_data = profile_data;
         }
 
         // Update the user in the database
@@ -170,6 +171,56 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({message: "Internal server error" });
     }
 };
+
+export const updatePassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user._id;
+
+    try {
+        // Validate input
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if the old password is correct
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Old password is incorrect" });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
+        const newPasswordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/; // At least one capital letter and one special character
+        if (!newPasswordRegex.test(newPassword)) {
+            return res.status(400).json({ 
+                message: "New Password must contain at least one capital letter and one special character" 
+            });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update the password in the database
+        user.password = hashedNewPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated successfully" });
+        
+    } catch (error) {
+        console.log("Error in updatePassword controller", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+
+}
 
 export const checkAuth = (req, res) => {
     try {
