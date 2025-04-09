@@ -10,7 +10,7 @@ const courseSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-}, { timestamps: false }); // No need for created_at/updated_at unless you want audit trail
+}, { timestamps: false }); // No need for created_at/updated_at unless for audit trail
 
 const Course = mongoose.model("Course", courseSchema);
 export default Course;
