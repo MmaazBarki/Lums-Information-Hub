@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Typography,
   Box,
@@ -41,30 +41,136 @@ import {
   FileCopy as FileIcon
 } from '@mui/icons-material';
 
-import { mockCourses } from '../../../mock/courses';
-import { mockAcademicResources, AcademicResource } from '../../../mock/academicResources';
+import { useAuth } from '../../../context/AuthContext';
+
+// Define interfaces based on backend models
+interface Course {
+  _id: string;
+  course_code: string;
+  course_name: string;
+  description: string;
+  department: string;
+  credits: number;
+}
+
+interface AcademicResource {
+  _id: string;
+  uploader_id: string;
+  uploader_name: string;
+  course_code: string;
+  topic: string;
+  file_url: string;
+  file_type: string;
+  file_size: string;
+  description: string;
+  downloads: number;
+  uploaded_at: string;
+}
 
 const Courses: React.FC = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [selectedResource, setSelectedResource] = useState<AcademicResource | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [bookmarkedResources, setBookmarkedResources] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for courses and resources from backend
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [resources, setResources] = useState<AcademicResource[]>([]);
+  
+  // State for upload form
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadFormData, setUploadFormData] = useState({
+    topic: '',
+    description: '',
+    file_url: '',
+    file_type: 'PDF',
+    file_size: '1MB',
+  });
+  const [uploadLoading, setUploadLoading] = useState(false);
+
+  // Fetch all courses from backend
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await fetch('http://localhost:5001/api/courses', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+        
+        const data = await response.json();
+        setCourses(data);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        // Do not fallback to mock data, just set empty array
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchCourses();
+  }, []);
+  
+  // Fetch resources when a course is selected
+  useEffect(() => {
+    if (selectedCourse) {
+      const fetchResources = async () => {
+        setLoading(true);
+        setError(null);
+        
+        try {
+          const response = await fetch(`http://localhost:5001/api/resources/${selectedCourse}`, {
+            method: 'GET',
+            credentials: 'include',
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to fetch resources');
+          }
+          
+          const data = await response.json();
+          setResources(data);
+        } catch (err) {
+          console.error('Error fetching resources:', err);
+          setError(err instanceof Error ? err.message : 'An error occurred');        // Set empty array on error
+        setResources([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchResources();
+    } else {
+      setResources([]);
+    }
+  }, [selectedCourse]);
 
   // Filter courses based on search query
   const filteredCourses = useMemo(() => {
-    return mockCourses.filter(course => 
+    return courses.filter(course => 
       course.course_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.course_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, courses]);
 
   // Get resources for the selected course
   const courseResources = useMemo(() => {
     if (!selectedCourse) return [];
-    return mockAcademicResources.filter(resource => resource.course_code === selectedCourse);
-  }, [selectedCourse]);
+    return resources;
+  }, [selectedCourse, resources]);
 
   // Toggle bookmark for a resource
   const toggleBookmark = (resourceId: string) => {
@@ -97,12 +203,91 @@ const Courses: React.FC = () => {
     setSelectedResource(null);
   };
 
-  // Handle download action (mock functionality)
-  const handleDownload = () => {
+  // Handle download action with backend connection
+  const handleDownload = async () => {
     if (selectedResource) {
-      console.log(`Downloading: ${selectedResource.file_url}`);
-      // In a real app, this would trigger the file download
-      alert(`Download started for: ${selectedResource.topic}`);
+      try {
+        // Track download in backend (if implemented)
+        // Note: This endpoint doesn't seem to exist in your backend yet
+        // For now, skip tracking the download on the backend
+        // You may want to implement this API endpoint later
+        // await fetch(`http://localhost:5001/api/resources/download/${selectedResource._id}`, {
+        //   method: 'PUT',
+        //   credentials: 'include',
+        // }).catch(err => console.error('Error tracking download:', err));
+        
+        // Trigger the download
+        window.open(selectedResource.file_url, '_blank');
+        
+        // Update local resource download count
+        setResources(prevResources => 
+          prevResources.map(resource => 
+            resource._id === selectedResource._id 
+              ? { ...resource, downloads: resource.downloads + 1 } 
+              : resource
+          )
+        );
+      } catch (err) {
+        console.error('Error during download:', err);
+      }
+    }
+  };
+  
+  // Handle upload form changes
+  const handleUploadFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setUploadFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  // Handle resource upload
+  const handleUploadResource = async () => {
+    if (!selectedCourse) return;
+    
+    setUploadLoading(true);
+    
+    try {
+      const response = await fetch('http://localhost:5001/api/resources/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          ...uploadFormData,
+          course_code: selectedCourse,
+          downloads: 0,
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload resource');
+      }
+      
+      const data = await response.json();
+      
+      // Add the new resource to the resources state
+      setResources(prev => [...prev, data.resource]);
+      
+      // Close the dialog and reset form
+      setUploadDialogOpen(false);
+      setUploadFormData({
+        topic: '',
+        description: '',
+        file_url: '',
+        file_type: 'PDF',
+        file_size: '1MB',
+      });
+      
+      alert('Resource uploaded successfully!');
+    } catch (err) {
+      console.error('Error uploading resource:', err);
+      alert(err instanceof Error ? err.message : 'Failed to upload resource');
+    } finally {
+      setUploadLoading(false);
     }
   };
 
@@ -181,10 +366,9 @@ const Courses: React.FC = () => {
                     <ListItemText 
                       primary={course.course_code} 
                       secondary={course.course_name} 
-                    />
-                    <Chip 
+                    />                      <Chip 
                       size="small" 
-                      label={mockAcademicResources.filter(r => r.course_code === course.course_code).length.toString()} 
+                      label={(selectedCourse === course.course_code ? resources.length : '0').toString()} 
                       color={selectedCourse === course.course_code ? "primary" : "default"}
                     />
                   </ListItemButton>
@@ -217,12 +401,13 @@ const Courses: React.FC = () => {
                 <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6">
-                      {mockCourses.find(c => c.course_code === selectedCourse)?.course_name} ({selectedCourse})
+                      {courses.find(c => c.course_code === selectedCourse)?.course_name} ({selectedCourse})
                     </Typography>
                     <Button 
                       variant="contained" 
                       startIcon={<CloudDownloadIcon />}
                       size="small"
+                      onClick={() => setUploadDialogOpen(true)}
                     >
                       Upload Resource
                     </Button>
@@ -323,6 +508,7 @@ const Courses: React.FC = () => {
                         <Button 
                           variant="contained" 
                           startIcon={<CloudDownloadIcon />}
+                          onClick={() => setUploadDialogOpen(true)}
                         >
                           Upload Resource
                         </Button>
@@ -546,6 +732,82 @@ const Courses: React.FC = () => {
             </DialogActions>
           </>
         )}
+      </Dialog>
+      
+      {/* Upload Resource Dialog */}
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          Upload Resource
+          <IconButton
+            aria-label="close"
+            onClick={() => setUploadDialogOpen(false)}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              label="Topic"
+              name="topic"
+              value={uploadFormData.topic}
+              onChange={handleUploadFormChange}
+              fullWidth
+              required
+            />
+            <TextField
+              label="Description"
+              name="description"
+              value={uploadFormData.description}
+              onChange={handleUploadFormChange}
+              fullWidth
+              multiline
+              rows={4}
+              required
+            />
+            <TextField
+              label="File URL"
+              name="file_url"
+              value={uploadFormData.file_url}
+              onChange={handleUploadFormChange}
+              fullWidth
+              required
+              helperText="In a real app, this would be a file upload field"
+            />
+            <TextField
+              label="File Type"
+              name="file_type"
+              value={uploadFormData.file_type}
+              onChange={handleUploadFormChange}
+              fullWidth
+              required
+            />
+            <TextField
+              label="File Size"
+              name="file_size"
+              value={uploadFormData.file_size}
+              onChange={handleUploadFormChange}
+              fullWidth
+              required
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleUploadResource} 
+            variant="contained"
+            disabled={uploadLoading}
+          >
+            {uploadLoading ? 'Uploading...' : 'Upload'}
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );
