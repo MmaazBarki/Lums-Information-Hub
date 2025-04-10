@@ -108,8 +108,6 @@ export const useMessages = () => {
 
   // Handle starting a new conversation
   const handleNewMessage = () => {
-    // In a real app, this would open a dialog to select a user
-    // For demo purposes, we'll just alert
     alert('New message feature would be implemented here');
   };
 

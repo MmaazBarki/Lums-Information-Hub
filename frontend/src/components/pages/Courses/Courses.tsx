@@ -21,7 +21,6 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  // Tooltip,
   Avatar,
   Tabs,
   Tab,
@@ -43,7 +42,7 @@ import {
 
 import { useAuth } from '../../../context/AuthContext';
 
-// Define interfaces based on backend models
+//Interfaces based on backend models
 interface Course {
   _id: string;
   course_code: string;
@@ -206,16 +205,7 @@ const Courses: React.FC = () => {
   // Handle download action with backend connection
   const handleDownload = async () => {
     if (selectedResource) {
-      try {
-        // Track download in backend (if implemented)
-        // Note: This endpoint doesn't seem to exist in your backend yet
-        // For now, skip tracking the download on the backend
-        // You may want to implement this API endpoint later
-        // await fetch(`http://localhost:5001/api/resources/download/${selectedResource._id}`, {
-        //   method: 'PUT',
-        //   credentials: 'include',
-        // }).catch(err => console.error('Error tracking download:', err));
-        
+      try {        
         // Trigger the download
         window.open(selectedResource.file_url, '_blank');
         
