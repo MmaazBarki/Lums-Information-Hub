@@ -1,5 +1,15 @@
 import Course from "../models/course.model.js";
 
+export const getAllCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({});
+        res.status(200).json(courses);
+    } catch (error) {
+        console.error("Fetch Courses Error:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 export const createCourse = async (req, res) => {
     const { course_code, course_name, description, department, credits } = req.body;
     const creator_id = req.user._id; // Auth middleware adds this
