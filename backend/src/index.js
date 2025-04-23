@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
+import postRoutes from "./routes/posts.routes.js";
 
 
 dotenv.config();
