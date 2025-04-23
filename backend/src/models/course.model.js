@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const courseSchema = new mongoose.Schema({
+const course = new mongoose.Schema({
     course_code: {
         type: String,
         required: true,
@@ -24,5 +24,5 @@ const courseSchema = new mongoose.Schema({
     }
 }, { timestamps: false }); // No need for created_at/updated_at unless for audit trail
 
-const Course = mongoose.model("Course", courseSchema);
+const Course = mongoose.model("Course", course);
 export default Course;
