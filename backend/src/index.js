@@ -29,7 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes); // Faraz: Message Routes
 
 app.use("/api/resources", academicResourceRoutes);
-app.use("/api/courses", courseRoutes); 
+app.use("/api/courses", courseRoutes);
+app.use("/api/posts", postRoutes); 
 
 server.listen(PORT, ()=>{
     console.log("server is running on port: "+ PORT);

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const academicResourceSchema = new mongoose.Schema({
+const academicResource = new mongoose.Schema({
     uploader_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User", // Will be either student or alumni
@@ -46,5 +46,5 @@ const academicResourceSchema = new mongoose.Schema({
     },
 });
 
-const AcademicResource = mongoose.model("AcademicResource", academicResourceSchema);
+const AcademicResource = mongoose.model("AcademicResource", academicResource);
 export default AcademicResource;
