@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import User from "../models/user.models.js";
 
 export const getAllPosts = async (req, res) => {
     try {
@@ -11,10 +12,14 @@ export const getAllPosts = async (req, res) => {
 };
 
 export const createPost = async (req, res) => {
+    
     const { description } = req.body;
     const creator_id = req.user._id; // Auth middleware adds this
 
-    const creator_name = req.user.profile_data.name || "mock_name"; // Mock name for now, replace with actual data from user profile
+    const user = await User.findById(creator_id);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
     
     if (!description) {
         return res.status(400).json({ message: "All fields are required." });
