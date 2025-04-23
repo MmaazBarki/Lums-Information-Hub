@@ -21,10 +21,7 @@ const post = new mongoose.Schema({
         type: Number,
         default: 0,
     },
-    report: {
-        type: Boolean,
-        default: false,
-    },
+
 }, { timestamps: { createdAt: "created_at", updatedAt: false } });
 
 const Post = mongoose.model("Post", post);
