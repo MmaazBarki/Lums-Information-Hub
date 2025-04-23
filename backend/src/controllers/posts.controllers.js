@@ -28,7 +28,6 @@ export const createPost = async (req, res) => {
             department: user.profile_data.department,
             role: user.role,
             number_of_likes: 0,
-            report: false
         });
 
         await newPost.save();
