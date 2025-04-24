@@ -10,7 +10,8 @@ import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
-
+import otpRoutes from "./routes/otp.routes.js";
+import resetPasswordRoutes from "./routes/resetPassword.routes.js";
 
 dotenv.config();
 
@@ -32,6 +33,9 @@ app.use("/api/message", messageRoutes); // Faraz: Message Routes
 app.use("/api/resources", academicResourceRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/posts", postRoutes); 
+
+app.use("/api/otp", otpRoutes);
+app.use("/api/auth/reset", resetPasswordRoutes);
 
 server.listen(PORT, ()=>{
     console.log("server is running on port: "+ PORT);
