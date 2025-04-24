@@ -19,6 +19,10 @@ const academicResource = new mongoose.Schema({
         type: String,
         required: true,
     },
+    original_filename: {
+        type: String,
+        required: true,
+    },
     file_url: {
         type: String,
         required: true,
@@ -29,7 +33,7 @@ const academicResource = new mongoose.Schema({
         default: "pdf"
     },
     file_size: {
-        type: Number,
+        type: Number, // Changed to Number to store bytes
         required: true,
     },
     downloads: {

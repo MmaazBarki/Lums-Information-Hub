@@ -58,9 +58,10 @@ interface AcademicResource {
   uploader_name: string;
   course_code: string;
   topic: string;
+  original_filename: string; // Added original filename
   file_url: string;
-  file_type: string;
-  file_size: string;
+  file_type: string; // Now stores just the extension
+  file_size: number; // Changed to number
   description: string;
   downloads: number;
   uploaded_at: string;
@@ -86,10 +87,8 @@ const Courses: React.FC = () => {
   const [uploadFormData, setUploadFormData] = useState({
     topic: '',
     description: '',
-    file_url: '',
-    file_type: 'PDF',
-    file_size: '1MB',
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
   const [uploadLoading, setUploadLoading] = useState(false);
 
   // Fetch all courses from backend
@@ -205,25 +204,53 @@ const Courses: React.FC = () => {
   // Handle download action with backend connection
   const handleDownload = async () => {
     if (selectedResource) {
-      try {        
-        // Trigger the download
-        window.open(selectedResource.file_url, '_blank');
-        
-        // Update local resource download count
-        setResources(prevResources => 
-          prevResources.map(resource => 
-            resource._id === selectedResource._id 
-              ? { ...resource, downloads: resource.downloads + 1 } 
+      try {
+        // Fetch the file as a blob
+        const response = await fetch(selectedResource.file_url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const blob = await response.blob();
+
+        // Create a link element, set the filename, and trigger download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = selectedResource.original_filename; // Use the original filename
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the object URL and link
+        URL.revokeObjectURL(link.href);
+        document.body.removeChild(link);
+
+        // Optionally: Send a request to backend to increment download count if needed
+        // await fetch(`/api/resources/${selectedResource._id}/download`, { method: 'POST', credentials: 'include' });
+
+        // Update local resource download count (optimistic update)
+        setResources(prevResources =>
+          prevResources.map(resource =>
+            resource._id === selectedResource._id
+              ? { ...resource, downloads: resource.downloads + 1 }
               : resource
           )
         );
       } catch (err) {
         console.error('Error during download:', err);
+        alert('Failed to download the file.');
       }
     }
   };
   
-  // Handle upload form changes
+  // Format file size from bytes
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Handle upload form changes for text inputs
   const handleUploadFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUploadFormData(prev => ({
@@ -231,25 +258,35 @@ const Courses: React.FC = () => {
       [name]: value
     }));
   };
-  
+
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   // Handle resource upload
   const handleUploadResource = async () => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || !selectedFile) {
+      alert("Please select a course and a file to upload.");
+      return;
+    }
     
     setUploadLoading(true);
     
+    const formData = new FormData();
+    formData.append('topic', uploadFormData.topic);
+    formData.append('description', uploadFormData.description);
+    formData.append('course_code', selectedCourse);
+    formData.append('resourceFile', selectedFile); // Append the file with the key expected by multer
+
     try {
       const response = await fetch('http://localhost:5001/api/resources/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // Remove 'Content-Type': 'application/json'. Browser sets it for FormData.
         credentials: 'include',
-        body: JSON.stringify({
-          ...uploadFormData,
-          course_code: selectedCourse,
-          downloads: 0,
-        }),
+        body: formData, // Send FormData
       });
       
       if (!response.ok) {
@@ -267,10 +304,8 @@ const Courses: React.FC = () => {
       setUploadFormData({
         topic: '',
         description: '',
-        file_url: '',
-        file_type: 'PDF',
-        file_size: '1MB',
       });
+      setSelectedFile(null); // Reset selected file
       
       alert('Resource uploaded successfully!');
     } catch (err) {
@@ -454,10 +489,12 @@ const Courses: React.FC = () => {
                                   
                                   <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: '0.8rem' }}>
-                                      {resource.file_type.charAt(0)}
+                                      {/* Display file type extension */}
+                                      {resource.file_type?.toUpperCase() || 'FILE'}
                                     </Avatar>
                                     <Typography variant="body2" color="text.secondary">
-                                      {resource.file_type} • {resource.file_size}
+                                      {/* Display formatted file size */}
+                                      {resource.file_type?.toUpperCase()} • {formatFileSize(resource.file_size)}
                                     </Typography>
                                   </Box>
                                   
@@ -639,13 +676,14 @@ const Courses: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <FileIcon sx={{ mr: 1 }} color="primary" />
                     <Typography variant="body2">
-                      File Type: <Chip label={selectedResource.file_type} size="small" />
+                      File Type: <Chip label={selectedResource.file_type?.toUpperCase()} size="small" />
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <CloudDownloadIcon sx={{ mr: 1 }} color="primary" />
                     <Typography variant="body2">
-                      File Size: {selectedResource.file_size}
+                      {/* Display formatted file size */}
+                      File Size: {formatFileSize(selectedResource.file_size)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -761,31 +799,24 @@ const Courses: React.FC = () => {
               rows={4}
               required
             />
-            <TextField
-              label="File URL"
-              name="file_url"
-              value={uploadFormData.file_url}
-              onChange={handleUploadFormChange}
+            {/* Replace text fields with a file input */}
+            <Button
+              variant="contained"
+              component="label"
               fullWidth
-              required
-              helperText="In a real app, this would be a file upload field"
-            />
-            <TextField
-              label="File Type"
-              name="file_type"
-              value={uploadFormData.file_type}
-              onChange={handleUploadFormChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="File Size"
-              name="file_size"
-              value={uploadFormData.file_size}
-              onChange={handleUploadFormChange}
-              fullWidth
-              required
-            />
+            >
+              Choose File
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+              />
+            </Button>
+            {selectedFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected file: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>
