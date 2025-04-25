@@ -246,7 +246,6 @@ const Profile: React.FC<ProfileProps> = () => {
 
     setUploadLoading(true);
     try {
-      // Convert file to base64 string
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {

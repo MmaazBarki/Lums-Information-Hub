@@ -1,4 +1,3 @@
-// Mock data for messages
 export const mockMessages = {
   '1': [
     { id: '1', text: 'Hi there, I had a question about the CS assignment', sender: 'other', timestamp: '10:15 AM' },
@@ -97,7 +96,6 @@ interface MockMessage {
 }
 
 export const messages: MockMessage[] = [
-  // Conversation 1 - Ahmed Khan
   {
     id: '101',
     conversationId: '1',
@@ -120,7 +118,6 @@ export const messages: MockMessage[] = [
     timestamp: '10:28 AM'
   },
   
-  // Conversation 2 - Sara Ahmed
   {
     id: '201',
     conversationId: '2',
@@ -143,7 +140,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Yesterday'
   },
   
-  // Conversation 3 - Dr. Ali Raza
   {
     id: '301',
     conversationId: '3',
@@ -166,7 +162,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Yesterday'
   },
   
-  // Conversation 4 - Ibrahim Malik
   {
     id: '401',
     conversationId: '4',
@@ -238,7 +233,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Monday'
   },
   
-  // Conversation 5 - Ayesha Tariq
   {
     id: '501',
     conversationId: '5',
@@ -310,7 +304,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Sunday'
   },
   
-  // Conversation 6 - Study Group
   {
     id: '601',
     conversationId: '6',
@@ -368,7 +361,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Last week'
   },
   
-  // Conversation 7 - Project Partner
   {
     id: '701',
     conversationId: '7',
@@ -433,7 +425,6 @@ export const messages: MockMessage[] = [
     timestamp: '2 weeks ago'
   },
   
-  // Conversation 8 - Class Rep
   {
     id: '801',
     conversationId: '8',
@@ -491,7 +482,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Mar 20'
   },
   
-  // Conversation 9 - Library Staff
   {
     id: '901',
     conversationId: '9',
@@ -549,7 +539,6 @@ export const messages: MockMessage[] = [
     timestamp: 'Mar 15'
   },
   
-  // Conversation 10 - Academic Advisor
   {
     id: '1001',
     conversationId: '10',

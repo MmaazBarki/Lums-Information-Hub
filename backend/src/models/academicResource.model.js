@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const ratingSchema = new mongoose.Schema({
+const rating = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -58,7 +58,7 @@ const academicResource = new mongoose.Schema({
         type: String,
         required: true,
     },
-    ratings: [ratingSchema],
+    ratings: [rating],
     averageRating: {
         type: Number,
         default: 0,

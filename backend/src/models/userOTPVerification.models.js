@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-const Schema = mongoose.Schema;
 
-const UserOTPVerification = new Schema({
+
+const UserOTPVerification = new mongoose.Schema({
     email: String,
     otp: String,
     createdAt: Date,

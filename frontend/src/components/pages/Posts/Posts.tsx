@@ -39,7 +39,7 @@ interface Post {
     description: string;
     department?: string;
     role?: string;
-    category: string; // Add category field
+    category: string;
     number_of_likes: number;
     created_at: string;
     isLikedByCurrentUser?: boolean;

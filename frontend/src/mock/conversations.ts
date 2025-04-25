@@ -1,5 +1,3 @@
-import { Conversation } from '../components/pages/Messages/types';
-
 interface MockConversation {
   id: string;
   name: string;
@@ -9,7 +7,6 @@ interface MockConversation {
   unread: number;
 }
 
-// Mock data for user conversations
 export const conversations: MockConversation[] = [
   {
     id: '1',

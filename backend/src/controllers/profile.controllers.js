@@ -1,7 +1,6 @@
 import User from "../models/user.models.js";
 import cloudinary from "../lib/cloudinary.js";
 
-// Upload or update profile picture
 export const uploadProfilePicture = async (req, res) => {
     try {
         const { userId } = req.params;
@@ -11,18 +10,15 @@ export const uploadProfilePicture = async (req, res) => {
             return res.status(400).json({ message: "Image data is required" });
         }
 
-        // Find the user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // If user already has a profile picture, delete it from Cloudinary
         if (user.profile_data?.profilePicture?.publicId) {
             await cloudinary.uploader.destroy(user.profile_data.profilePicture.publicId);
         }
 
-        // Upload new image to Cloudinary
         const result = await cloudinary.uploader.upload(image, {
             folder: "profile-pictures",
             transformation: [
@@ -31,7 +27,6 @@ export const uploadProfilePicture = async (req, res) => {
             ]
         });
 
-        // Update user's profile data
         if (!user.profile_data) {
             user.profile_data = {};
         }
@@ -53,23 +48,19 @@ export const uploadProfilePicture = async (req, res) => {
     }
 };
 
-// Remove profile picture
 export const removeProfilePicture = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Find the user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // If user has a profile picture, delete it from Cloudinary
         if (user.profile_data?.profilePicture?.publicId) {
             await cloudinary.uploader.destroy(user.profile_data.profilePicture.publicId);
         }
 
-        // Update user's profile data
         if (user.profile_data) {
             user.profile_data.profilePicture = {
                 url: "",
@@ -88,18 +79,15 @@ export const removeProfilePicture = async (req, res) => {
     }
 };
 
-// Get user profile picture
 export const getProfilePicture = async (req, res) => {
     try {
         const { userId } = req.params;
 
-        // Find the user
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Return the profile picture URL
         return res.status(200).json({
             profilePicture: user.profile_data?.profilePicture || { url: "", publicId: "" }
         });

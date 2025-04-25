@@ -15,10 +15,8 @@ const Messages: React.FC = () => {
     currentConversationUser, 
     currentMessages,
     selectedUserId,
-    // setSearchQuery, // Removed for now
     handleSelectUser,
     handleSendMessage,
-    // handleNewMessage, // Removed, EmptyState doesn't need it now
     loading,
     error,
     currentUserId,

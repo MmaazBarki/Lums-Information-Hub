@@ -53,7 +53,7 @@ const schoolsData: School[] = [
   } 
 ];
 
-export const generateGroupedDepartmentOptions = (): React.ReactNode[] => { // Renamed function for clarity
+export const generateGroupedDepartmentOptions = (): React.ReactNode[] => {
   const options: React.ReactNode[] = [];
   schoolsData.forEach((school) => {
     options.push(<ListSubheader key={school.name}>{school.name}</ListSubheader>);

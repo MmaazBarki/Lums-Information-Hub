@@ -1,14 +1,14 @@
 export interface AcademicResource {
   _id: string;
   uploader_id: string;
-  uploader_name: string; // Not in DB schema but useful for UI
+  uploader_name: string;
   course_code: string;
   topic: string;
   description?: string;
   file_url: string;
-  file_type: string; // Not in DB schema but useful for UI
-  file_size: string; // Not in DB schema but useful for UI
-  downloads: number; // Not in DB schema but useful for UI
+  file_type: string; 
+  file_size: string; 
+  downloads: number; 
   uploaded_at: string;
 }
 

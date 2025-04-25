@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const profileDataSchema = new mongoose.Schema({
+const profileData = new mongoose.Schema({
     name: {
         type: String,
         required: false
@@ -83,7 +83,7 @@ const user = new mongoose.Schema(
             required: false,
         },
         profile_data: {
-            type: profileDataSchema,
+            type: profileData,
             default: function () {
                 return this.role === "admin" ? undefined : {};
             },

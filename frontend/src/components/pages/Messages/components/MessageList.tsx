@@ -5,8 +5,6 @@ import {
   Typography,
   Divider
 } from '@mui/material';
-
-// Import types
 import { Message } from '../types';
 
 interface MessageListProps {

@@ -225,7 +225,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.message || 'Failed to upload profile picture');
       }
       
-      // Update user state with new profile picture
       const updatedUser = {
         ...user,
         profile_data: {
@@ -262,7 +261,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.message || 'Failed to remove profile picture');
       }
       
-      // Update user state with removed profile picture
       const updatedUser = {
         ...user,
         profile_data: {
