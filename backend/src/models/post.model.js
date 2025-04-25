@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
-const post = new mongoose.Schema({
+const postSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
+    },
     name: {
         type: String,
     },
@@ -21,8 +25,12 @@ const post = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
 
 }, { timestamps: { createdAt: "created_at", updatedAt: false } });
 
-const Post = mongoose.model("Post", post);
+const Post = mongoose.model("Post", postSchema);
 export default Post;
