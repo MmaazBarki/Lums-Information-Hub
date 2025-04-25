@@ -35,35 +35,6 @@ export const sendPasswordResetOTP = async (req, res) => {
   }
 };
 
-// export const verifyPasswordResetOTP = async (req, res) => {
-//   try {
-//       const { userId, otp, newPassword } = req.body;
-
-//       if (!userId || !otp || !newPassword) {
-//           return res.status(400).json({ message: "All fields are required" });
-//       }
-//       const otpRecord = await UserOTPVerification.findOne({ userID: userId }).sort({ createdAt: -1 });
-//       console.log("Fetched OTP record:", otpRecord);
-//       if (!otpRecord) {
-//           return res.status(400).json({ message: "Invalid or expired OTP" });
-//       }
-
-//       if (otpRecord.expiredAt < Date.now()) {
-//           await UserOTPVerification.deleteMany({ userID: userId });
-//           return res.status(400).json({ message: "OTP has expired" });
-//       }
-      
-//       const isMatch = await bcrypt.compare(otp, otpRecord.otp);
-//       if (!isMatch) return res.status(400).json({ message: "Incorrect OTP" });
-//       const hashedPassword = await bcrypt.hash(newPassword, 10);
-//       await User.findByIdAndUpdate(userId, { password: hashedPassword });
-//       await UserOTPVerification.deleteMany({ userID: userId });
-
-//       res.json({ message: "Password has been reset successfully" });
-//   } catch (err) {
-//       res.status(500).json({ message: err.message });
-//   }
-// };
 
 export const verifyPasswordResetOTP = async (req, res) => {
   try {
