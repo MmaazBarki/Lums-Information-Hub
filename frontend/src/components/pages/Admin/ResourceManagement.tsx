@@ -60,7 +60,7 @@ const ResourceManagement: React.FC = () => {
   const fetchResources = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5001/api/academic-resources', {
+      const response = await fetch('http://localhost:5001/api/resources/all', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

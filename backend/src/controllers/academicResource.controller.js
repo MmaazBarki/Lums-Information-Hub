@@ -167,3 +167,15 @@ export const incrementDownloadCount = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+// Function to get all academic resources
+export const getAllResources = async (req, res) => {
+    try {
+        const resources = await AcademicResource.find({})
+            .populate("uploader_id", "email role");
+        res.status(200).json(resources);
+    } catch (error) {
+        console.error("Fetch Error:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
