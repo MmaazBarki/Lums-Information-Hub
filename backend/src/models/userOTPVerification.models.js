@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
 const UserOTPVerificationSchema = new Schema({
-    userID: String,
+    email: String,
     otp: String,
     createdAt: Date,
     expiredAt: Date
