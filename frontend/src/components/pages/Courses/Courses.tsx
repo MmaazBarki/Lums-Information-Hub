@@ -158,6 +158,31 @@ const Courses: React.FC = () => {
     }
   }, [selectedCourse]);
 
+  useEffect(() => {
+    const fetchBookmarkedResources = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/bookmarks', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch bookmarked resources');
+        }
+        
+        const data = await response.json();
+        const bookmarkIds = data.map((resource: AcademicResource) => resource._id);
+        setBookmarkedResources(bookmarkIds);
+      } catch (err) {
+        console.error('Error fetching bookmarked resources:', err);
+      }
+    };
+    
+    if (user) {
+      fetchBookmarkedResources();
+    }
+  }, [user]);
+
   const filteredCourses = useMemo(() => {
     return courses.filter(course => 
       course.course_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -170,12 +195,28 @@ const Courses: React.FC = () => {
     return resources;
   }, [selectedCourse, resources]);
 
-  const toggleBookmark = (resourceId: string) => {
-    setBookmarkedResources(prev => 
-      prev.includes(resourceId)
-        ? prev.filter(id => id !== resourceId)
-        : [...prev, resourceId]
-    );
+  const toggleBookmark = async (resourceId: string) => {
+    try {
+      const response = await fetch(`http://localhost:5001/api/bookmarks/${resourceId}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to toggle bookmark');
+      }
+      
+      const data = await response.json();
+      
+      if (data.isBookmarked) {
+        setBookmarkedResources(prev => [...prev, resourceId]);
+      } else {
+        setBookmarkedResources(prev => prev.filter(id => id !== resourceId));
+      }
+    } catch (err) {
+      console.error('Error toggling bookmark:', err);
+      alert('Failed to update bookmark. Please try again.');
+    }
   };
 
   const formatDate = (dateString: string) => {

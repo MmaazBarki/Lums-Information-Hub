@@ -17,6 +17,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import MailIcon from '@mui/icons-material/Mail';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import SchoolIcon from '@mui/icons-material/School';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from '../../../context/AuthContext';
@@ -50,7 +51,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Messages', icon: <MailIcon />, path: '/messages' },
     { text: 'Posts', icon: <PostAddIcon />, path: '/posts' },
-    { text: 'Courses', icon: <SchoolIcon />, path: '/courses' }
+    { text: 'Courses', icon: <SchoolIcon />, path: '/courses' },
+    { text: 'Bookmarks', icon: <BookmarkIcon />, path: '/bookmarks' }
   ];
 
   if (user?.role === 'admin') {
