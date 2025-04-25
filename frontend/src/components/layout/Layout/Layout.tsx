@@ -20,6 +20,7 @@ import Messages from '../../pages/Messages/Messages';
 import Posts from '../../pages/Posts/Posts';
 import Courses from '../../pages/Courses/Courses';
 import Profile from '../../pages/Profile/Profile';
+import Admin from '../../pages/Admin/Admin';
 import { useAuth } from '../../../context/AuthContext';
 
 interface LayoutProps {
@@ -43,6 +44,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
     if (path === 'messages') return 'Messages';
     if (path === 'posts') return 'Posts';
     if (path === 'courses') return 'Courses';
+    if (path === 'admin') return 'Admin';
     
     return 'Dashboard';
   };
@@ -185,6 +187,9 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
               <Route path="/posts" element={<Posts />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/profile" element={<Profile />} />
+              
+              {/* Admin routes - only for admin users */}
+              <Route path="/admin/*" element={<Admin />} />
               
               {/* Only redirect the root path to dashboard */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
