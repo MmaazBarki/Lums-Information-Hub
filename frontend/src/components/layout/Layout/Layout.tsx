@@ -13,6 +13,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import Sidebar from '../Sidebar/Sidebar';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
+import NotificationComponent from '../Notification/NotificationComponent';
 import Dashboard from '../../pages/Dashboard/Dashboard';
 import Messages from '../../pages/Messages/Messages';
 import Posts from '../../pages/Posts/Posts';
@@ -97,6 +98,9 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
           </Typography>
 
           <Box sx={{ flexGrow: 1 }} />
+          
+          {/* Notification component */}
+          <NotificationComponent />
           
           {/* Theme toggle button */}
           <ThemeToggle toggleColorMode={toggleColorMode} />

@@ -16,6 +16,7 @@ import ForgotPassword from './components/pages/Auth/ForgotPassword';
 import { getTheme } from './theme/theme';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 const ProtectedRoute = ({ 
   children, 
@@ -85,45 +86,47 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Box sx={{ 
-          width: '100%', 
-          height: '100vh',
-          padding: 0,
-          margin: 0,
-          overflow: 'hidden'
-        }}>
-          <Routes>
-            {/* Redirect root to login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
-            {/* Auth routes - public access only */}
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/signup" element={
-              <PublicRoute>
-                <Signup />
-              </PublicRoute>
-            } />
-            <Route path="/forgot-password" element={
-              <PublicRoute>
-                <ForgotPassword />
-              </PublicRoute>
-            } />
-            
-            {/* All protected routes wrapped in a single Layout */}
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <Layout toggleColorMode={toggleColorMode} />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Box>
+        <NotificationProvider>
+          <Box sx={{ 
+            width: '100%', 
+            height: '100vh',
+            padding: 0,
+            margin: 0,
+            overflow: 'hidden'
+          }}>
+            <Routes>
+              {/* Redirect root to login */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              
+              {/* Auth routes - public access only */}
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
+              <Route path="/signup" element={
+                <PublicRoute>
+                  <Signup />
+                </PublicRoute>
+              } />
+              <Route path="/forgot-password" element={
+                <PublicRoute>
+                  <ForgotPassword />
+                </PublicRoute>
+              } />
+              
+              {/* All protected routes wrapped in a single Layout */}
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <Layout toggleColorMode={toggleColorMode} />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Box>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   </BrowserRouter>

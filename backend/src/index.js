@@ -13,6 +13,7 @@ import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 import bookmarkRoutes from "./routes/bookmark.routes.js";
 import { configureCloudinary } from "./lib/cloudinary.js";
 import otpRoutes from "./routes/otp.routes.js";
@@ -26,7 +27,7 @@ const PORT = process.env.PORT
 app.use(cors({
     origin: ["http://localhost:5173", "http://localhost:3000"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"]
   }));
 
@@ -40,6 +41,7 @@ app.use("/api/resources", academicResourceRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/posts", postRoutes); 
 app.use("/api/admin", adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 
 app.use("/api/otp", otpRoutes);
