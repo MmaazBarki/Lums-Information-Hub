@@ -46,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   const displayName = user?.profile_data?.name || user?.email || 'User';
   const role = user?.role || 'User';
+  const profilePictureUrl = user?.profile_data?.profilePicture?.url || '';
 
   let menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
@@ -174,6 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => setActiveSection('Profile')}
           >
             <Avatar 
+              src={profilePictureUrl}
               sx={{ 
                 width: 40, 
                 height: 40,
@@ -181,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 flexShrink: 0,
               }}
             >
-              {userInitials}
+              {!profilePictureUrl && userInitials}
             </Avatar>
             {isDrawerOpen && (
               <Box sx={{ 

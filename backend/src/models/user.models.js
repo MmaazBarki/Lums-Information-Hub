@@ -13,12 +13,22 @@ const profileDataSchema = new mongoose.Schema({
         type: [String],
         required: false
     },
+    profilePicture: {
+        url: {
+            type: String,
+            default: ""
+        },
+        publicId: {
+            type: String,
+            default: ""
+        }
+    },
     bookmarks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AcademicResource'
     }],
-    // Any other profile data fields can be defined here
-}, { _id: false, strict: false }); // Keep it flexible with strict: false
+    
+}, { _id: false, strict: false });
 
 const user = new mongoose.Schema(
     {

@@ -16,6 +16,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateUser: (userData: Partial<UserInfo>) => void;
   isAuthenticated: boolean;
+  uploadProfilePicture: (imageData: string) => Promise<void>;
+  removeProfilePicture: () => Promise<void>;
 }
 
 interface SignupData {
@@ -32,7 +34,9 @@ const AuthContext = createContext<AuthContextType>({
   signup: async () => {},
   logout: async () => {},
   updateUser: () => {},
-  isAuthenticated: false
+  isAuthenticated: false,
+  uploadProfilePicture: async () => {},
+  removeProfilePicture: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -200,6 +204,84 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('userInfo', JSON.stringify(updatedUser));
   };
 
+  const uploadProfilePicture = async (imageData: string) => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`http://localhost:5001/api/profile/profile-picture/${user.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageData }),
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to upload profile picture');
+      }
+      
+      // Update user state with new profile picture
+      const updatedUser = {
+        ...user,
+        profile_data: {
+          ...user.profile_data,
+          profilePicture: data.profilePicture
+        }
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      
+    } catch (error) {
+      console.error('Profile picture upload error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const removeProfilePicture = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      
+      const response = await fetch(`http://localhost:5001/api/profile/profile-picture/${user.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to remove profile picture');
+      }
+      
+      // Update user state with removed profile picture
+      const updatedUser = {
+        ...user,
+        profile_data: {
+          ...user.profile_data,
+          profilePicture: { url: "", publicId: "" }
+        }
+      };
+      
+      setUser(updatedUser);
+      localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+      
+    } catch (error) {
+      console.error('Profile picture removal error:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider 
       value={{
@@ -210,6 +292,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout,
         updateUser,
         isAuthenticated: !!user,
+        uploadProfilePicture,
+        removeProfilePicture,
       }}
     >
       {children}

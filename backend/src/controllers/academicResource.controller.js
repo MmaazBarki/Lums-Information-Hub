@@ -47,7 +47,7 @@ export const uploadResource = async (req, res) => {
     console.log("Uploaded File Info:", req.file); 
 
     try {
-        // Upload file buffer to Cloudinary, passing original filename
+  
         const cloudinaryResult = await uploadToCloudinary(req.file.buffer, req.file.originalname);
         console.log("Cloudinary Upload Result:", cloudinaryResult);
 
@@ -55,7 +55,6 @@ export const uploadResource = async (req, res) => {
             throw new Error("Cloudinary upload failed");
         }
 
-        // extension extraction
         const fileExtension = path.extname(req.file.originalname).slice(1) || cloudinaryResult.format;
 
         const newResource = new AcademicResource({

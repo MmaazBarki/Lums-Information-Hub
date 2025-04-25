@@ -24,13 +24,12 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../../context/AuthContext';
 
-// Post type definition
 interface Post {
   _id: string;
   title: string;
-  description: string; // Changed from content to description
-  name: string; // Added name field from post schema
-  email: string; // Added email field from post schema
+  description: string;
+  name: string; 
+  email: string;
   department?: string;
   role?: string;
   number_of_likes?: number;
