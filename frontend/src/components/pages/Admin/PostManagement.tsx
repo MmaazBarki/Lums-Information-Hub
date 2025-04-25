@@ -51,7 +51,6 @@ const PostManagement: React.FC = () => {
     severity: 'success' as 'success' | 'error'
   });
 
-  // Fetch all posts
   const fetchPosts = async () => {
     setLoading(true);
     try {
@@ -69,11 +68,9 @@ const PostManagement: React.FC = () => {
 
       const data = await response.json();
       
-      // Ensure data is an array before setting it to state
       if (Array.isArray(data)) {
         setPosts(data);
       } else if (data && typeof data === 'object' && Array.isArray(data.posts)) {
-        // Handle case where API returns { posts: [...] }
         setPosts(data.posts);
       } else {
         console.error('Unexpected API response format:', data);
@@ -89,7 +86,6 @@ const PostManagement: React.FC = () => {
     }
   };
 
-  // Delete post
   const deletePost = async (postId: string) => {
     try {
       const response = await fetch(`http://localhost:5001/api/admin/delete/posts/${postId}`, {
@@ -104,7 +100,6 @@ const PostManagement: React.FC = () => {
         throw new Error('Failed to delete post');
       }
 
-      // Remove deleted post from the list
       setPosts(posts.filter(post => post._id !== postId));
       setSnackbar({
         open: true,
@@ -120,13 +115,11 @@ const PostManagement: React.FC = () => {
     }
   };
 
-  // Handle delete button click
   const handleDeleteClick = (post: Post) => {
     setPostToDelete(post);
     setDeleteDialogOpen(true);
   };
 
-  // Confirm delete
   const confirmDelete = () => {
     if (postToDelete) {
       deletePost(postToDelete._id);
@@ -135,30 +128,25 @@ const PostManagement: React.FC = () => {
     }
   };
 
-  // Close delete dialog
   const handleCloseDialog = () => {
     setDeleteDialogOpen(false);
     setPostToDelete(null);
   };
 
-  // Close snackbar
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Format post content for display (truncate if too long)
   const formatContent = (content: string) => {
     return content && content.length > 100 ? `${content.substring(0, 100)}...` : content || '';
   };
 
-  // Get author display name
   const getAuthorName = (post: Post) => {
     if (post.name) return post.name;
     if (post.email) return post.email;
     return 'Unknown';
   };
 
-  // Fetch posts on component mount
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -194,8 +182,8 @@ const PostManagement: React.FC = () => {
           component={Paper} 
           sx={{ 
             mt: 3, 
-            maxHeight: 'calc(100vh - 240px)', // Set max height for scrolling
-            overflow: 'auto' // Enable scrolling
+            maxHeight: 'calc(100vh - 240px)', 
+            overflow: 'auto' 
           }}
         >
           <Table stickyHeader>

@@ -24,7 +24,6 @@ interface ProfileData {
   name?: string;
   department?: string;
   batch?: string;
-  // rollNumber?: string;
 }
 
 interface UserData {
@@ -102,12 +101,6 @@ const Signup: React.FC = () => {
         return;
       }
 
-      // if (role === 'student' && !profileData.rollNumber) {
-      //   setError('Roll number is required for students');
-      //   setLoading(false);
-      //   return;
-      // }
-
       if (role === 'alumni' && !profileData.batch) {
         setError('Graduation year is required for alumni');
         setLoading(false);
@@ -133,7 +126,6 @@ const Signup: React.FC = () => {
       });
 
       const data = await response.json();
-      // console.log("response from verification", data);
       
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed');
@@ -263,16 +255,6 @@ const Signup: React.FC = () => {
             {generateGroupedDepartmentOptions()}
           </Select>
         </FormControl>
-{/* 
-        {role === 'student' && (
-          <TextField
-            label="Roll Number"
-            value={profileData.rollNumber || ''}
-            onChange={(e) => handleProfileTextFieldChange('rollNumber', e.target.value)}
-            fullWidth
-            required
-          />
-        )} */}
 
         {role === 'alumni' && (
           <TextField

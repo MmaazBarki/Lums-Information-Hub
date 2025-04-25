@@ -9,29 +9,24 @@ import {
 // Import types
 import { Message } from '../types';
 
-// Update props interface to include currentUserId
 interface MessageListProps {
   messages: Message[];
   currentUserId: string; 
 }
 
-// Destructure currentUserId from props
 const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Scroll to bottom of messages when conversation changes or new message is added
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Group messages by date for better visual organization
   const groupMessagesByDate = () => {
     const groups: { [key: string]: Message[] } = {};
     
     messages.forEach(message => {
-      // Use createdAt for date grouping, format it as needed
       const dateKey = new Date(message.createdAt).toLocaleDateString(undefined, {
         year: 'numeric', month: 'long', day: 'numeric'
       });
@@ -103,12 +98,11 @@ const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId }) =>
           </Box>
           
           {dateMessages.map((message) => {
-            // Determine if the message sender is the current user
             const isSelf = message.senderID === currentUserId;
             
             return (
               <Box
-                key={message._id} // Use _id as key
+                key={message._id} 
                 sx={{
                   display: 'flex',
                   justifyContent: isSelf ? 'flex-end' : 'flex-start',

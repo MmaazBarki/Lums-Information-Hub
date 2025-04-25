@@ -27,14 +27,12 @@ const Login: React.FC = () => {
     setError('');
     setLoading(true);
     
-    // Basic validation
     if (!email || !password) {
       setError('Email and password are required');
       setLoading(false);
       return;
     }
     
-    // Email validation including TLD check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address with a domain extension');
@@ -44,10 +42,8 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      // Navigation will be handled in the AuthContext based on user role
     } catch (err) {
       console.log('Login error caught:', err);
-      // Ensure the error is displayed and prevent form refresh
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
       setLoading(false);
     }
@@ -68,7 +64,7 @@ const Login: React.FC = () => {
         elevation={3} 
         sx={{ 
           display: 'flex',
-          height: '500px', // Fixed height for better vertical centering
+          height: '500px', 
           width: '900px',
           borderRadius: 2,
           overflow: 'hidden',
@@ -102,7 +98,7 @@ const Login: React.FC = () => {
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center', // Centers content vertically
+            justifyContent: 'center', 
             p: 5,
           }}
         >
@@ -112,8 +108,8 @@ const Login: React.FC = () => {
             mx: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center', // Additional vertical centering
-            flexGrow: 1 // Takes up available space
+            justifyContent: 'center', 
+            flexGrow: 1 
           }}>
             <Typography variant="h4" component="h1" gutterBottom textAlign="center">
               Welcome Back

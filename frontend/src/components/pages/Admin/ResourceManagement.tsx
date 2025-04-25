@@ -25,7 +25,6 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../../context/AuthContext';
 
-// Resource type definition
 interface AcademicResource {
   _id: string;
   title: string;
@@ -38,8 +37,8 @@ interface AcademicResource {
   };
   courseId?: string;
   courseName?: string;
-  created_at: string; // Corrected field name
-  updated_at: string; // Corrected field name
+  created_at: string; 
+  updated_at: string;
   tags?: string[];
 }
 
@@ -56,7 +55,6 @@ const ResourceManagement: React.FC = () => {
     severity: 'success' as 'success' | 'error'
   });
 
-  // Fetch all academic resources
   const fetchResources = async () => {
     setLoading(true);
     try {
@@ -74,11 +72,9 @@ const ResourceManagement: React.FC = () => {
 
       const data = await response.json();
       
-      // Ensure data is an array before setting it to state
       if (Array.isArray(data)) {
         setResources(data);
       } else if (data && typeof data === 'object' && Array.isArray(data.resources)) {
-        // Handle case where API returns { resources: [...] }
         setResources(data.resources);
       } else {
         console.error('Unexpected API response format:', data);
@@ -94,7 +90,6 @@ const ResourceManagement: React.FC = () => {
     }
   };
 
-  // Delete academic resource
   const deleteResource = async (resourceId: string) => {
     try {
       const response = await fetch(`http://localhost:5001/api/admin/delete/resources/${resourceId}`, {
@@ -109,7 +104,6 @@ const ResourceManagement: React.FC = () => {
         throw new Error('Failed to delete resource');
       }
 
-      // Remove deleted resource from the list
       setResources(resources.filter(resource => resource._id !== resourceId));
       setSnackbar({
         open: true,
@@ -125,13 +119,11 @@ const ResourceManagement: React.FC = () => {
     }
   };
 
-  // Handle delete button click
   const handleDeleteClick = (resource: AcademicResource) => {
     setResourceToDelete(resource);
     setDeleteDialogOpen(true);
   };
 
-  // Confirm delete
   const confirmDelete = () => {
     if (resourceToDelete) {
       deleteResource(resourceToDelete._id);
@@ -140,23 +132,19 @@ const ResourceManagement: React.FC = () => {
     }
   };
 
-  // Close delete dialog
   const handleCloseDialog = () => {
     setDeleteDialogOpen(false);
     setResourceToDelete(null);
   };
 
-  // Close snackbar
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Format description for display (truncate if too long)
   const formatDescription = (description: string) => {
     return description && description.length > 100 ? `${description.substring(0, 100)}...` : description || '';
   };
 
-  // Fetch resources on component mount
   useEffect(() => {
     fetchResources();
   }, []);
@@ -192,8 +180,8 @@ const ResourceManagement: React.FC = () => {
           component={Paper} 
           sx={{ 
             mt: 3, 
-            maxHeight: 'calc(100vh - 240px)', // Set max height for scrolling
-            overflow: 'auto' // Enable scrolling
+            maxHeight: 'calc(100vh - 240px)', 
+            overflow: 'auto'
           }}
         >
           <Table stickyHeader>

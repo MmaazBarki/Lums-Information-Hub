@@ -38,7 +38,6 @@ const Profile: React.FC<ProfileProps> = () => {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   
-  // Profile form state
   const [profileFormData, setProfileFormData] = useState({
     name: user?.profile_data?.name || '',
     email: user?.email || '',
@@ -48,7 +47,6 @@ const Profile: React.FC<ProfileProps> = () => {
     bio: user?.profile_data?.bio || '',
   });
   
-  // Password change form state
   const [passwordFormData, setPasswordFormData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -61,7 +59,6 @@ const Profile: React.FC<ProfileProps> = () => {
     confirmPassword: '',
   });
 
-  // Handle profile form changes for TextFields
   const handleProfileTextFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setProfileFormData(prev => ({
@@ -70,7 +67,6 @@ const Profile: React.FC<ProfileProps> = () => {
     }));
   };
 
-  // Handle department change for Select
   const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
     setProfileFormData(prev => ({
       ...prev,
@@ -78,7 +74,6 @@ const Profile: React.FC<ProfileProps> = () => {
     }));
   };
 
-  // Handle password form changes
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordFormData(prev => ({
@@ -86,17 +81,14 @@ const Profile: React.FC<ProfileProps> = () => {
       [name]: value
     }));
     
-    // Clear the error for this field as user types
     setPasswordErrors(prev => ({
       ...prev,
       [name]: ''
     }));
   };
 
-  // Toggle edit mode
   const toggleEditMode = () => {
-    if (editMode) {
-      // If switching from edit to view, reset the form data
+   if (editMode) {
       setProfileFormData({
         name: user?.profile_data?.name || '',
         email: user?.email || '',
@@ -109,23 +101,20 @@ const Profile: React.FC<ProfileProps> = () => {
     setEditMode(!editMode);
   };
 
-  // Submit profile changes
   const handleSubmitProfile = async () => {
     try {
-      // Call the backend API to update profile
       const response = await fetch('http://localhost:5001/api/auth/update-profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for sending cookies
+        credentials: 'include', 
         body: JSON.stringify({
           name: profileFormData.name,
           department: profileFormData.department,
           alternate_email: profileFormData.alternateEmail,
           batch: profileFormData.batch,
           bio: profileFormData.bio,
-          // Only include necessary fields that backend expects
         }),
       });
       
@@ -135,9 +124,7 @@ const Profile: React.FC<ProfileProps> = () => {
         throw new Error(updatedUser.message || 'Failed to update profile');
       }
       
-      // Update both the localStorage and React context with the new user data
       if (updatedUser) {
-        // Use the updateUser function from AuthContext to update both state and localStorage
         updateUser({
           ...user,
           profile_data: updatedUser.profile_data || user?.profile_data
@@ -159,7 +146,6 @@ const Profile: React.FC<ProfileProps> = () => {
     }
   };
 
-  // Validate password form
   const validatePasswordForm = () => {
     let valid = true;
     const errors = {
@@ -180,7 +166,6 @@ const Profile: React.FC<ProfileProps> = () => {
       errors.newPassword = 'Password must be at least 6 characters';
       valid = false;
     } else {
-      // Password validation regex - at least one capital letter and one special character
       const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
       if (!passwordRegex.test(passwordFormData.newPassword)) {
         errors.newPassword = 'Password must contain at least one capital letter and one special character';
@@ -197,18 +182,16 @@ const Profile: React.FC<ProfileProps> = () => {
     return valid;
   };
 
-  // Submit password change
   const handleSubmitPasswordChange = async () => {
     if (!validatePasswordForm()) return;
     
     try {
-      // Call the backend API to update the password
       const response = await fetch('http://localhost:5001/api/auth/update-password', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for sending cookies
+        credentials: 'include', 
         body: JSON.stringify({
           oldPassword: passwordFormData.currentPassword,
           newPassword: passwordFormData.newPassword
@@ -241,12 +224,10 @@ const Profile: React.FC<ProfileProps> = () => {
     }
   };
 
-  // Close notification
   const handleCloseNotification = () => {
     setNotification(null);
   };
 
-  // Generate avatar initials from name
   const getInitials = () => {
     const name = user?.profile_data?.name || '';
     return name.split(' ')
@@ -439,7 +420,6 @@ const Profile: React.FC<ProfileProps> = () => {
             </CardContent>
           </Card>
           
-          {/* You could add additional cards here for other profile-related information */}
         </Grid>
       </Grid>
       

@@ -5,7 +5,7 @@ import { protectRoute } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", getAllCourses); // Get all courses - no protection needed
+router.get("/", protectRoute, getAllCourses);
 router.post("/create", protectRoute, createCourse);
 
 export default router;

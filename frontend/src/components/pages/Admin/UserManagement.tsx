@@ -45,7 +45,6 @@ const UserManagement: React.FC = () => {
     severity: 'success' as 'success' | 'error'
   });
 
-  // Fetch all users
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -63,11 +62,9 @@ const UserManagement: React.FC = () => {
 
       const data = await response.json();
       
-      // Ensure data is an array before setting it to state
       if (Array.isArray(data)) {
         setUsers(data);
       } else if (data && typeof data === 'object' && Array.isArray(data.users)) {
-        // Handle case where API returns { users: [...] }
         setUsers(data.users);
       } else {
         console.error('Unexpected API response format:', data);
@@ -83,7 +80,6 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Delete user
   const deleteUser = async (userId: string) => {
     try {
       const response = await fetch(`http://localhost:5001/api/admin/delete/users/${userId}`, {
@@ -98,7 +94,6 @@ const UserManagement: React.FC = () => {
         throw new Error('Failed to delete user');
       }
 
-      // Remove deleted user from the list
       setUsers(users.filter(user => user._id !== userId));
       setSnackbar({
         open: true,
@@ -114,13 +109,11 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Handle delete button click
   const handleDeleteClick = (user: User) => {
     setUserToDelete(user);
     setDeleteDialogOpen(true);
   };
 
-  // Confirm delete
   const confirmDelete = () => {
     if (userToDelete) {
       deleteUser(userToDelete._id);
@@ -129,18 +122,15 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  // Close delete dialog
   const handleCloseDialog = () => {
     setDeleteDialogOpen(false);
     setUserToDelete(null);
   };
 
-  // Close snackbar
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -176,8 +166,8 @@ const UserManagement: React.FC = () => {
           component={Paper} 
           sx={{ 
             mt: 3, 
-            maxHeight: 'calc(100vh - 240px)', // Set max height for scrolling
-            overflow: 'auto' // Enable scrolling
+            maxHeight: 'calc(100vh - 240px)', 
+            overflow: 'auto' 
           }}
         >
           <Table stickyHeader>

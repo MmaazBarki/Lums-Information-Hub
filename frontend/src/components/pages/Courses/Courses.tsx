@@ -25,7 +25,7 @@ import {
   Tabs,
   Tab,
   ListItemButton,
-  Rating, // Import Rating component
+  Rating,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -38,12 +38,11 @@ import {
   PersonOutline as PersonIcon,
   CalendarToday as CalendarIcon,
   FileCopy as FileIcon,
-  Star as StarIcon, // Import Star icon for rating display
+  Star as StarIcon,
 } from '@mui/icons-material';
 
 import { useAuth } from '../../../context/AuthContext';
 
-//Interfaces based on backend models
 interface Course {
   _id: string;
   course_code: string;
@@ -51,7 +50,7 @@ interface Course {
   description: string;
   department: string;
   credits: number;
-  resourceCount: number; // Added resource count
+  resourceCount: number;
 }
 
 interface AcademicResource {
@@ -60,16 +59,15 @@ interface AcademicResource {
   uploader_name: string;
   course_code: string;
   topic: string;
-  original_filename: string; // Added original filename
+  original_filename: string; 
   file_url: string;
-  file_type: string; // Now stores just the extension
-  file_size: number; // Changed to number
+  file_type: string; 
+  file_size: number; 
   description: string;
   downloads: number;
   uploaded_at: string;
-  averageRating: number; // Added average rating
-  numberOfRatings: number; // Added number of ratings
-  // Optional: Include the user's own rating if fetched
+  averageRating: number;
+  numberOfRatings: number;
   userRating?: number;
 }
 
@@ -84,24 +82,20 @@ const Courses: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // State for courses and resources from backend
   const [courses, setCourses] = useState<Course[]>([]);
   const [resources, setResources] = useState<AcademicResource[]>([]);
   
-  // State for upload form
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadFormData, setUploadFormData] = useState({
     topic: '',
     description: '',
   });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); 
   const [uploadLoading, setUploadLoading] = useState(false);
 
-  // State for user's rating in modal
   const [currentUserRating, setCurrentUserRating] = useState<number | null>(null);
-  const [ratingLoading, setRatingLoading] = useState(false); // State for rating submission loading
+  const [ratingLoading, setRatingLoading] = useState(false); 
 
-  // Fetch all courses from backend
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -122,7 +116,6 @@ const Courses: React.FC = () => {
       } catch (err) {
         console.error('Error fetching courses:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
-        // Do not fallback to mock data, just set empty array
         setCourses([]);
       } finally {
         setLoading(false);
@@ -131,8 +124,7 @@ const Courses: React.FC = () => {
     
     fetchCourses();
   }, []);
-  
-  // Fetch resources when a course is selected
+ 
   useEffect(() => {
     if (selectedCourse) {
       const fetchResources = async () => {
@@ -153,7 +145,7 @@ const Courses: React.FC = () => {
           setResources(data);
         } catch (err) {
           console.error('Error fetching resources:', err);
-          setError(err instanceof Error ? err.message : 'An error occurred');        // Set empty array on error
+          setError(err instanceof Error ? err.message : 'An error occurred');
         setResources([]);
         } finally {
           setLoading(false);
@@ -166,7 +158,6 @@ const Courses: React.FC = () => {
     }
   }, [selectedCourse]);
 
-  // Filter courses based on search query
   const filteredCourses = useMemo(() => {
     return courses.filter(course => 
       course.course_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -174,13 +165,11 @@ const Courses: React.FC = () => {
     );
   }, [searchQuery, courses]);
 
-  // Get resources for the selected course
   const courseResources = useMemo(() => {
     if (!selectedCourse) return [];
     return resources;
   }, [selectedCourse, resources]);
 
-  // Toggle bookmark for a resource
   const toggleBookmark = (resourceId: string) => {
     setBookmarkedResources(prev => 
       prev.includes(resourceId)
@@ -189,7 +178,6 @@ const Courses: React.FC = () => {
     );
   };
 
-  // Format the date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -199,57 +187,45 @@ const Courses: React.FC = () => {
     });
   };
 
-  // Handle opening the resource details modal
   const handleOpenResourceModal = (resource: AcademicResource) => {
     setSelectedResource(resource);
-    // TODO: Ideally, fetch the user's specific rating for this resource if not already included
-    // For now, reset or set based on fetched data if available
     setCurrentUserRating(resource.userRating || null); 
     setIsModalOpen(true);
   };
 
-  // Handle closing the resource details modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedResource(null);
-    setCurrentUserRating(null); // Reset rating state on close
+    setCurrentUserRating(null);
   };
 
-  // Handle download action with backend connection
   const handleDownload = async () => {
     if (selectedResource) {
       const resourceId = selectedResource._id;
       try {
-        // Fetch the file as a blob
         const response = await fetch(selectedResource.file_url);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const blob = await response.blob();
 
-        // Create a link element, set the filename, and trigger download
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = selectedResource.original_filename; // Use the original filename
+        link.download = selectedResource.original_filename;
         document.body.appendChild(link);
         link.click();
 
-        // Clean up the object URL and link
         URL.revokeObjectURL(link.href);
         document.body.removeChild(link);
 
-        // --- Increment download count on backend ---
         try {
           const downloadCountResponse = await fetch(`http://localhost:5001/api/resources/${resourceId}/download`, {
             method: 'POST',
             credentials: 'include',
           });
           if (!downloadCountResponse.ok) {
-            // Log error but don't block user, download already happened
             console.error('Failed to update download count on backend:', await downloadCountResponse.text());
           } else {
-            // Update local resource download count (optimistic update)
-            // This ensures the UI updates immediately
             setResources(prevResources =>
               prevResources.map(resource =>
                 resource._id === resourceId
@@ -257,7 +233,6 @@ const Courses: React.FC = () => {
                   : resource
               )
             );
-            // Also update the selected resource if it's the one being downloaded
             setSelectedResource(prevSelected => 
               prevSelected && prevSelected._id === resourceId 
                 ? { ...prevSelected, downloads: prevSelected.downloads + 1 } 
@@ -267,7 +242,6 @@ const Courses: React.FC = () => {
         } catch (countError) {
           console.error('Error updating download count:', countError);
         }
-        // --- End of download count update ---
 
       } catch (err) {
         console.error('Error during download:', err);
@@ -276,7 +250,6 @@ const Courses: React.FC = () => {
     }
   };
   
-  // Format file size from bytes
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -285,7 +258,6 @@ const Courses: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Handle upload form changes for text inputs
   const handleUploadFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUploadFormData(prev => ({
@@ -294,14 +266,12 @@ const Courses: React.FC = () => {
     }));
   };
 
-  // Handle file input change
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  // Handle resource upload
   const handleUploadResource = async () => {
     if (!selectedCourse || !selectedFile) {
       alert("Please select a course and a file to upload.");
@@ -314,14 +284,13 @@ const Courses: React.FC = () => {
     formData.append('topic', uploadFormData.topic);
     formData.append('description', uploadFormData.description);
     formData.append('course_code', selectedCourse);
-    formData.append('resourceFile', selectedFile); // Append the file with the key expected by multer
+    formData.append('resourceFile', selectedFile); 
 
     try {
       const response = await fetch('http://localhost:5001/api/resources/upload', {
         method: 'POST',
-        // Remove 'Content-Type': 'application/json'. Browser sets it for FormData.
         credentials: 'include',
-        body: formData, // Send FormData
+        body: formData,
       });
       
       if (!response.ok) {
@@ -331,16 +300,14 @@ const Courses: React.FC = () => {
       
       const data = await response.json();
       
-      // Add the new resource to the resources state
       setResources(prev => [...prev, data.resource]);
       
-      // Close the dialog and reset form
       setUploadDialogOpen(false);
       setUploadFormData({
         topic: '',
         description: '',
       });
-      setSelectedFile(null); // Reset selected file
+      setSelectedFile(null); 
       
       alert('Resource uploaded successfully!');
     } catch (err) {
@@ -351,17 +318,15 @@ const Courses: React.FC = () => {
     }
   };
 
-  // Handle tab change
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
-  // Handle rating change and submission
   const handleRatingChange = async (newValue: number | null) => {
     if (!selectedResource || newValue === null || ratingLoading) return;
 
     setRatingLoading(true);
-    setCurrentUserRating(newValue); // Optimistically update UI
+    setCurrentUserRating(newValue); 
 
     try {
       const response = await fetch(`http://localhost:5001/api/resources/${selectedResource._id}/rate`, {
@@ -380,12 +345,11 @@ const Courses: React.FC = () => {
 
       const data = await response.json();
 
-      // Update the resource in the main list and the selected resource state
       const updatedResource = { 
         ...selectedResource, 
         averageRating: data.averageRating, 
         numberOfRatings: data.numberOfRatings,
-        userRating: newValue // Keep track of the user's submitted rating
+        userRating: newValue
       };
       
       setSelectedResource(updatedResource);
@@ -400,8 +364,6 @@ const Courses: React.FC = () => {
     } catch (err) {
       console.error('Error submitting rating:', err);
       alert(err instanceof Error ? err.message : 'Failed to submit rating');
-      // Revert optimistic update on error
-      // Check if selectedResource still exists before accessing its properties
       if (selectedResource) {
         setCurrentUserRating(selectedResource.userRating || null); 
       }
@@ -561,14 +523,14 @@ const Courses: React.FC = () => {
                               <IconButton
                                 size="small"
                                 onClick={(e) => {
-                                  e.stopPropagation(); // Keep stopPropagation
+                                  e.stopPropagation();
                                   toggleBookmark(resource._id);
                                 }}
                                 sx={{ 
                                   position: 'absolute', 
                                   top: 8, 
                                   right: 8, 
-                                  zIndex: 1 // Ensure button is above CardActionArea ripple
+                                  zIndex: 1
                                 }}
                               >
                                 {bookmarkedResources.includes(resource._id) ? (
@@ -580,7 +542,7 @@ const Courses: React.FC = () => {
                               <CardActionArea onClick={() => handleOpenResourceModal(resource)}>
                                 <CardContent>
                                   {/* Remove the Box containing the IconButton */}
-                                  <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 /* Add padding to prevent overlap */ }}>
+                                  <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 }}>
                                     {resource.topic}
                                   </Typography>
                                   
@@ -667,14 +629,14 @@ const Courses: React.FC = () => {
                                 <IconButton
                                   size="small"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // Keep stopPropagation
+                                    e.stopPropagation();
                                     toggleBookmark(resource._id);
                                   }}
                                   sx={{ 
                                     position: 'absolute', 
                                     top: 8, 
                                     right: 8, 
-                                    zIndex: 1 // Ensure button is above CardActionArea ripple
+                                    zIndex: 1 
                                   }}
                                 >
                                   {/* Always show filled icon in bookmarked tab */}
@@ -837,7 +799,7 @@ const Courses: React.FC = () => {
                     onChange={(_event, newValue) => {
                       handleRatingChange(newValue);
                     }}
-                    precision={1} // Allow only whole stars for user input
+                    precision={1} 
                     size="large"
                     disabled={ratingLoading}
                   />
@@ -853,7 +815,7 @@ const Courses: React.FC = () => {
                       <Rating 
                         name={`rating-modal-${selectedResource._id}`}
                         value={selectedResource.averageRating} 
-                        precision={0.5} 
+                        precision={0.1} 
                         readOnly 
                         size="small"
                         emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
