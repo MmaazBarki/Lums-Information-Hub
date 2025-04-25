@@ -15,6 +15,7 @@ import postRoutes from "./routes/posts.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import bookmarkRoutes from "./routes/bookmark.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 import { configureCloudinary } from "./lib/cloudinary.js";
 import otpRoutes from "./routes/otp.routes.js";
 import resetPasswordRoutes from "./routes/resetPassword.routes.js";
@@ -43,6 +44,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.use("/api/otp", otpRoutes);
 app.use("/api/auth/reset", resetPasswordRoutes);

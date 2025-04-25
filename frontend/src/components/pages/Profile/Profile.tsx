@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Typography,
   Box,
@@ -23,20 +23,26 @@ import {
   FormControl,
   InputLabel,
   SelectChangeEvent,
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import { useAuth } from '../../../context/AuthContext';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import LockIcon from '@mui/icons-material/Lock';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { generateGroupedDepartmentOptions } from '../../../constants/departments';
 
 interface ProfileProps {}
 
 const Profile: React.FC<ProfileProps> = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, uploadProfilePicture, removeProfilePicture } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [profileFormData, setProfileFormData] = useState({
     name: user?.profile_data?.name || '',
@@ -228,6 +234,73 @@ const Profile: React.FC<ProfileProps> = () => {
     setNotification(null);
   };
 
+  const handleProfilePictureClick = () => {
+    if (editMode && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadLoading(true);
+    try {
+      // Convert file to base64 string
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          await uploadProfilePicture(reader.result as string);
+          setNotification({
+            type: 'success',
+            message: 'Profile picture updated successfully'
+          });
+        } catch (error) {
+          setNotification({
+            type: 'error',
+            message: error instanceof Error ? error.message : 'Failed to upload profile picture'
+          });
+        } finally {
+          setUploadLoading(false);
+        }
+      };
+      reader.onerror = () => {
+        setNotification({
+          type: 'error',
+          message: 'Failed to read file'
+        });
+        setUploadLoading(false);
+      };
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to upload profile picture'
+      });
+      setUploadLoading(false);
+    }
+  };
+
+  const handleRemoveProfilePicture = async () => {
+    if (!user?.profile_data?.profilePicture?.url) return;
+    
+    setUploadLoading(true);
+    try {
+      await removeProfilePicture();
+      setNotification({
+        type: 'success',
+        message: 'Profile picture removed'
+      });
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to remove profile picture'
+      });
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   const getInitials = () => {
     const name = user?.profile_data?.name || '';
     return name.split(' ')
@@ -273,17 +346,87 @@ const Profile: React.FC<ProfileProps> = () => {
             />
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                <Avatar
-                  sx={{
-                    bgcolor: 'primary.main',
-                    width: 80,
-                    height: 80,
-                    fontSize: 32,
-                    mb: 2
-                  }}
-                >
-                  {getInitials()}
-                </Avatar>
+                <Box sx={{ position: 'relative' }}>
+                  <Avatar
+                    src={user?.profile_data?.profilePicture?.url || ''}
+                    sx={{
+                      bgcolor: 'primary.main',
+                      width: 100,
+                      height: 100,
+                      fontSize: 40,
+                      mb: 2,
+                      cursor: editMode ? 'pointer' : 'default',
+                      border: editMode ? '2px dashed #ccc' : 'none',
+                    }}
+                    onClick={handleProfilePictureClick}
+                  >
+                    {!user?.profile_data?.profilePicture?.url && getInitials()}
+                    {uploadLoading && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: 'rgba(0,0,0,0.5)',
+                          borderRadius: '50%',
+                        }}
+                      >
+                        <CircularProgress size={40} color="inherit" />
+                      </Box>
+                    )}
+                  </Avatar>
+                  
+                  {editMode && (
+                    <Box sx={{ 
+                      position: 'absolute', 
+                      bottom: 0, 
+                      right: 0, 
+                      display: 'flex',
+                      gap: 0.5
+                    }}>
+                      <IconButton 
+                        size="small" 
+                        color="primary" 
+                        sx={{ 
+                          bgcolor: 'background.paper',
+                          '&:hover': { bgcolor: 'background.default' },
+                          boxShadow: 1
+                        }}
+                        onClick={handleProfilePictureClick}
+                      >
+                        <PhotoCameraIcon fontSize="small" />
+                      </IconButton>
+                      
+                      {user?.profile_data?.profilePicture?.url && (
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          sx={{ 
+                            bgcolor: 'background.paper',
+                            '&:hover': { bgcolor: 'background.default' },
+                            boxShadow: 1
+                          }}
+                          onClick={handleRemoveProfilePicture}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
+                  )}
+                  
+                  <input
+                    type="file"
+                    hidden
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                </Box>
                 <Typography variant="h6">
                   {user?.profile_data?.name || 'User'}
                 </Typography>

@@ -94,14 +94,13 @@ const Signup: React.FC = () => {
       return;
     }
 
-    // Check for name field only for non-admin users
+
     if (role !== 'admin' && !profileData.name) {
       setError('Full Name is required');
       setLoading(false);
       return;
     }
 
-    // Additional checks for student and alumni
     if (role !== 'admin') {
       if (!profileData.department) {
         setError('Department is required for students and alumni');
@@ -117,10 +116,9 @@ const Signup: React.FC = () => {
     }
 
     try {
-      // Create a profile_data object
+
       let userProfileData: ProfileData = {};
       
-      // Add fields for non-admin users
       if (role !== 'admin') {
         userProfileData = {
           name: profileData.name,
@@ -254,12 +252,11 @@ const Signup: React.FC = () => {
   };
 
   const renderProfileFields = () => {
-    // For admin role, don't show any profile fields
+
     if (role === 'admin') {
       return null;
     }
 
-    // For student and alumni, show all required fields
     return (
       <>
         <TextField

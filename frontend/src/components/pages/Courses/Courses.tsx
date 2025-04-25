@@ -485,7 +485,7 @@ const Courses: React.FC = () => {
                       secondary={course.course_name} 
                     />                      <Chip 
                       size="small" 
-                      // Use the resourceCount from the fetched course data
+
                       label={course.resourceCount.toString()} 
                       color={selectedCourse === course.course_code ? "primary" : "default"}
                     />
@@ -553,7 +553,7 @@ const Courses: React.FC = () => {
                   },
                 }}>
                   {tabValue === 0 ? (
-                    // All resources tab
+
                     courseResources.length > 0 ? (
                       <Grid container spacing={2}>
                         {courseResources.map((resource) => (

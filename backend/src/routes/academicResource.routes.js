@@ -1,5 +1,5 @@
 import express from "express";
-import { uploadResource, getResourcesByCourse, addOrUpdateRating, incrementDownloadCount, getAllResources } from "../controllers/academicResource.controller.js"; // Added getAllResources
+import { uploadResource, getResourcesByCourse, addOrUpdateRating, incrementDownloadCount, getAllResources } from "../controllers/academicResource.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js"
 import multer from "multer";
 

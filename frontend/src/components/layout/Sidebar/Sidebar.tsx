@@ -46,6 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   const displayName = user?.profile_data?.name || user?.email || 'User';
   const role = user?.role || 'User';
+  const profilePictureUrl = user?.profile_data?.profilePicture?.url || '';
 
   let menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
@@ -168,28 +169,29 @@ const Sidebar: React.FC<SidebarProps> = ({
               cursor: 'pointer',
               borderRadius: 1,
               px: 1,
-              overflow: 'hidden', // Add overflow hidden to prevent content from expanding
-              maxWidth: isDrawerOpen ? 'calc(100% - 48px)' : 'auto', // Reserve space for the logout button
+              overflow: 'hidden', 
+              maxWidth: isDrawerOpen ? 'calc(100% - 48px)' : 'auto',
             }}
             onClick={() => setActiveSection('Profile')}
           >
             <Avatar 
+              src={profilePictureUrl}
               sx={{ 
                 width: 40, 
                 height: 40,
                 bgcolor: 'primary.main',
-                flexShrink: 0, // Prevent avatar from shrinking
+                flexShrink: 0,
               }}
             >
-              {userInitials}
+              {!profilePictureUrl && userInitials}
             </Avatar>
             {isDrawerOpen && (
               <Box sx={{ 
                 minWidth: 0,
                 opacity: isDrawerOpen ? 1 : 0,
                 transition: (theme) => theme.transitions.create('opacity'),
-                overflow: 'hidden', // Add overflow hidden to clip text
-                width: '100%', // Ensure the text container takes available width
+                overflow: 'hidden',
+                width: '100%',
               }}>
                 <Typography noWrap variant="body2" fontWeight="500">
                   {displayName}

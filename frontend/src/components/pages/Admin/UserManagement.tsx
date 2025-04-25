@@ -23,13 +23,13 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuth } from '../../../context/AuthContext';
 
-// User type definition
+
 interface User {
   _id: string;
   email: string;
   role: 'student' | 'alumni' | 'admin';
   profile_data: any;
-  created_at: string; // Corrected field name
+  created_at: string;
 }
 
 const UserManagement: React.FC = () => {
