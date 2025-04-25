@@ -99,3 +99,44 @@ export const getResourcesByCourse = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+export const addOrUpdateRating = async (req, res) => {
+    const { resourceId } = req.params;
+    const { rating } = req.body;
+    const userId = req.user._id; // Assuming protectRoute middleware adds user info
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Invalid rating value. Must be between 1 and 5." });
+    }
+
+    try {
+        const resource = await AcademicResource.findById(resourceId);
+        if (!resource) {
+            return res.status(404).json({ message: "Resource not found." });
+        }
+
+        // Check if the user has already rated this resource
+        const existingRatingIndex = resource.ratings.findIndex(r => r.userId.equals(userId));
+
+        if (existingRatingIndex > -1) {
+            // Update existing rating
+            resource.ratings[existingRatingIndex].rating = rating;
+        } else {
+            // Add new rating
+            resource.ratings.push({ userId, rating });
+        }
+
+        // The pre-save hook will automatically recalculate the average rating
+        await resource.save();
+
+        res.status(200).json({ 
+            message: "Rating submitted successfully.", 
+            averageRating: resource.averageRating, 
+            numberOfRatings: resource.numberOfRatings 
+        });
+
+    } catch (error) {
+        console.error("Rating Error:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};

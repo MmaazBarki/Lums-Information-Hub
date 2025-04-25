@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
+import { 
   Typography,
   Box,
   Paper,
@@ -24,12 +24,12 @@ import {
   Avatar,
   Tabs,
   Tab,
-  ListItemButton
+  ListItemButton,
+  Rating, // Import Rating component
 } from '@mui/material';
 import {
   Search as SearchIcon,
   School as SchoolIcon,
-  // Description as DescriptionIcon,
   CloudDownload as CloudDownloadIcon,
   Folder as FolderIcon,
   BookmarkBorder as BookmarkIcon,
@@ -37,7 +37,8 @@ import {
   Close as CloseIcon,
   PersonOutline as PersonIcon,
   CalendarToday as CalendarIcon,
-  FileCopy as FileIcon
+  FileCopy as FileIcon,
+  Star as StarIcon, // Import Star icon for rating display
 } from '@mui/icons-material';
 
 import { useAuth } from '../../../context/AuthContext';
@@ -50,6 +51,7 @@ interface Course {
   description: string;
   department: string;
   credits: number;
+  resourceCount: number; // Added resource count
 }
 
 interface AcademicResource {
@@ -65,6 +67,10 @@ interface AcademicResource {
   description: string;
   downloads: number;
   uploaded_at: string;
+  averageRating: number; // Added average rating
+  numberOfRatings: number; // Added number of ratings
+  // Optional: Include the user's own rating if fetched
+  userRating?: number;
 }
 
 const Courses: React.FC = () => {
@@ -90,6 +96,10 @@ const Courses: React.FC = () => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
   const [uploadLoading, setUploadLoading] = useState(false);
+
+  // State for user's rating in modal
+  const [currentUserRating, setCurrentUserRating] = useState<number | null>(null);
+  const [ratingLoading, setRatingLoading] = useState(false); // State for rating submission loading
 
   // Fetch all courses from backend
   useEffect(() => {
@@ -192,6 +202,9 @@ const Courses: React.FC = () => {
   // Handle opening the resource details modal
   const handleOpenResourceModal = (resource: AcademicResource) => {
     setSelectedResource(resource);
+    // TODO: Ideally, fetch the user's specific rating for this resource if not already included
+    // For now, reset or set based on fetched data if available
+    setCurrentUserRating(resource.userRating || null); 
     setIsModalOpen(true);
   };
 
@@ -199,6 +212,7 @@ const Courses: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedResource(null);
+    setCurrentUserRating(null); // Reset rating state on close
   };
 
   // Handle download action with backend connection
@@ -321,6 +335,60 @@ const Courses: React.FC = () => {
     setTabValue(newValue);
   };
 
+  // Handle rating change and submission
+  const handleRatingChange = async (newValue: number | null) => {
+    if (!selectedResource || newValue === null || ratingLoading) return;
+
+    setRatingLoading(true);
+    setCurrentUserRating(newValue); // Optimistically update UI
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/resources/${selectedResource._id}/rate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ rating: newValue }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit rating');
+      }
+
+      const data = await response.json();
+
+      // Update the resource in the main list and the selected resource state
+      const updatedResource = { 
+        ...selectedResource, 
+        averageRating: data.averageRating, 
+        numberOfRatings: data.numberOfRatings,
+        userRating: newValue // Keep track of the user's submitted rating
+      };
+      
+      setSelectedResource(updatedResource);
+      setResources(prevResources =>
+        prevResources.map(resource =>
+          resource._id === selectedResource._id
+            ? updatedResource
+            : resource
+        )
+      );
+
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      alert(err instanceof Error ? err.message : 'Failed to submit rating');
+      // Revert optimistic update on error
+      // Check if selectedResource still exists before accessing its properties
+      if (selectedResource) {
+        setCurrentUserRating(selectedResource.userRating || null); 
+      }
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ pb: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -393,7 +461,8 @@ const Courses: React.FC = () => {
                       secondary={course.course_name} 
                     />                      <Chip 
                       size="small" 
-                      label={(selectedCourse === course.course_code ? resources.length : '0').toString()} 
+                      // Use the resourceCount from the fetched course data
+                      label={course.resourceCount.toString()} 
                       color={selectedCourse === course.course_code ? "primary" : "default"}
                     />
                   </ListItemButton>
@@ -487,6 +556,21 @@ const Courses: React.FC = () => {
                                     </IconButton>
                                   </Box>
                                   
+                                  {/* Display Average Rating */}
+                                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
+                                    <Rating 
+                                      name={`rating-${resource._id}`}
+                                      value={resource.averageRating} 
+                                      precision={0.5} 
+                                      readOnly 
+                                      size="small"
+                                      emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                    />
+                                    <Typography variant="caption" color="text.secondary">
+                                      ({resource.numberOfRatings})
+                                    </Typography>
+                                  </Box>
+
                                   <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: '0.8rem' }}>
                                       {/* Display file type extension */}
@@ -567,6 +651,21 @@ const Courses: React.FC = () => {
                                       </IconButton>
                                     </Box>
                                     
+                                    {/* Display Average Rating */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
+                                      <Rating 
+                                        name={`rating-bookmark-${resource._id}`}
+                                        value={resource.averageRating} 
+                                        precision={0.5} 
+                                        readOnly 
+                                        size="small"
+                                        emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                      />
+                                      <Typography variant="caption" color="text.secondary">
+                                        ({resource.numberOfRatings})
+                                      </Typography>
+                                    </Box>
+
                                     <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                                       <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: '0.8rem' }}>
                                         {resource.file_type.charAt(0)}
@@ -692,12 +791,42 @@ const Courses: React.FC = () => {
                       Downloads: {selectedResource.downloads}
                     </Typography>
                   </Box>
+
+                  {/* Add Rating Section */}
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1" gutterBottom>Rate this Resource</Typography>
+                  <Rating
+                    name="user-rating"
+                    value={currentUserRating}
+                    onChange={(_event, newValue) => {
+                      handleRatingChange(newValue);
+                    }}
+                    precision={1} // Allow only whole stars for user input
+                    size="large"
+                    disabled={ratingLoading}
+                  />
+                   {ratingLoading && <Typography variant="caption" sx={{ ml: 1 }}>Submitting...</Typography>}
                 </Grid>
                 
                 <Grid item xs={12} md={4}>
                   <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>Resource Information</Typography>
                     
+                    {/* Display Average Rating in Modal */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 0.5 }}>
+                      <Rating 
+                        name={`rating-modal-${selectedResource._id}`}
+                        value={selectedResource.averageRating} 
+                        precision={0.5} 
+                        readOnly 
+                        size="small"
+                        emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        ({selectedResource.numberOfRatings} ratings)
+                      </Typography>
+                    </Box>
+
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <PersonIcon sx={{ mr: 1 }} fontSize="small" color="primary" />
                       <Typography variant="body2">
