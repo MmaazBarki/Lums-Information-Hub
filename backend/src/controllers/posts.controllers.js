@@ -3,13 +3,17 @@ import User from "../models/user.models.js";
 
 export const getAllPosts = async (req, res) => {
     try {
-        const { department, page = 1, limit = 10 } = req.query;
+        const { department, category, page = 1, limit = 10 } = req.query;
         const userId = req.user?._id;
 
 
         const query = {};
         if (department && department !== 'All') {
             query.department = department;
+        }
+        
+        if (category && category !== 'All') {
+            query.category = category;
         }
 
         const pageNum = parseInt(page, 10);
@@ -43,7 +47,7 @@ export const getAllPosts = async (req, res) => {
 
 export const createPost = async (req, res) => {
     
-    const { description, title } = req.body;
+    const { description, title, category } = req.body;
     const creator_id = req.user._id;
 
     const user = await User.findById(creator_id);
@@ -54,6 +58,11 @@ export const createPost = async (req, res) => {
     if (!description || !title) {
         return res.status(400).json({ message: "Title and description are required." });
     }
+    
+    const validCategories = ['Job Post', 'Internship Post', 'Community Post'];
+    const postCategory = category && validCategories.includes(category) 
+        ? category 
+        : 'Community Post';
 
     try {
         const newPost = new Post({
@@ -63,6 +72,7 @@ export const createPost = async (req, res) => {
             description,
             department: user.profile_data.department,
             role: user.role,
+            category: postCategory,
             number_of_likes: 0,
         });
 
