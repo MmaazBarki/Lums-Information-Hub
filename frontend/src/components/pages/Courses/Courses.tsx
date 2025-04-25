@@ -218,6 +218,7 @@ const Courses: React.FC = () => {
   // Handle download action with backend connection
   const handleDownload = async () => {
     if (selectedResource) {
+      const resourceId = selectedResource._id;
       try {
         // Fetch the file as a blob
         const response = await fetch(selectedResource.file_url);
@@ -237,17 +238,37 @@ const Courses: React.FC = () => {
         URL.revokeObjectURL(link.href);
         document.body.removeChild(link);
 
-        // Optionally: Send a request to backend to increment download count if needed
-        // await fetch(`/api/resources/${selectedResource._id}/download`, { method: 'POST', credentials: 'include' });
+        // --- Increment download count on backend ---
+        try {
+          const downloadCountResponse = await fetch(`http://localhost:5001/api/resources/${resourceId}/download`, {
+            method: 'POST',
+            credentials: 'include',
+          });
+          if (!downloadCountResponse.ok) {
+            // Log error but don't block user, download already happened
+            console.error('Failed to update download count on backend:', await downloadCountResponse.text());
+          } else {
+            // Update local resource download count (optimistic update)
+            // This ensures the UI updates immediately
+            setResources(prevResources =>
+              prevResources.map(resource =>
+                resource._id === resourceId
+                  ? { ...resource, downloads: resource.downloads + 1 }
+                  : resource
+              )
+            );
+            // Also update the selected resource if it's the one being downloaded
+            setSelectedResource(prevSelected => 
+              prevSelected && prevSelected._id === resourceId 
+                ? { ...prevSelected, downloads: prevSelected.downloads + 1 } 
+                : prevSelected
+            );
+          }
+        } catch (countError) {
+          console.error('Error updating download count:', countError);
+        }
+        // --- End of download count update ---
 
-        // Update local resource download count (optimistic update)
-        setResources(prevResources =>
-          prevResources.map(resource =>
-            resource._id === selectedResource._id
-              ? { ...resource, downloads: resource.downloads + 1 }
-              : resource
-          )
-        );
       } catch (err) {
         console.error('Error during download:', err);
         alert('Failed to download the file.');
@@ -534,27 +555,34 @@ const Courses: React.FC = () => {
                       <Grid container spacing={2}>
                         {courseResources.map((resource) => (
                           <Grid item xs={12} sm={6} md={4} key={resource._id}>
-                            <Card elevation={2}>
+                            {/* Add relative positioning to the Card */}
+                            <Card elevation={2} sx={{ position: 'relative' }}>
+                              {/* Move IconButton outside CardActionArea */}
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Keep stopPropagation
+                                  toggleBookmark(resource._id);
+                                }}
+                                sx={{ 
+                                  position: 'absolute', 
+                                  top: 8, 
+                                  right: 8, 
+                                  zIndex: 1 // Ensure button is above CardActionArea ripple
+                                }}
+                              >
+                                {bookmarkedResources.includes(resource._id) ? (
+                                  <BookmarkAddedIcon color="primary" />
+                                ) : (
+                                  <BookmarkIcon />
+                                )}
+                              </IconButton>
                               <CardActionArea onClick={() => handleOpenResourceModal(resource)}>
                                 <CardContent>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
-                                      {resource.topic}
-                                    </Typography>
-                                    <IconButton 
-                                      size="small" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleBookmark(resource._id);
-                                      }}
-                                    >
-                                      {bookmarkedResources.includes(resource._id) ? (
-                                        <BookmarkAddedIcon color="primary" />
-                                      ) : (
-                                        <BookmarkIcon />
-                                      )}
-                                    </IconButton>
-                                  </Box>
+                                  {/* Remove the Box containing the IconButton */}
+                                  <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 /* Add padding to prevent overlap */ }}>
+                                    {resource.topic}
+                                  </Typography>
                                   
                                   {/* Display Average Rating */}
                                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
@@ -633,23 +661,31 @@ const Courses: React.FC = () => {
                           .filter(r => bookmarkedResources.includes(r._id))
                           .map((resource) => (
                             <Grid item xs={12} sm={6} md={4} key={resource._id}>
-                              <Card elevation={2}>
+                              {/* Add relative positioning to the Card */}
+                              <Card elevation={2} sx={{ position: 'relative' }}>
+                                {/* Move IconButton outside CardActionArea */}
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Keep stopPropagation
+                                    toggleBookmark(resource._id);
+                                  }}
+                                  sx={{ 
+                                    position: 'absolute', 
+                                    top: 8, 
+                                    right: 8, 
+                                    zIndex: 1 // Ensure button is above CardActionArea ripple
+                                  }}
+                                >
+                                  {/* Always show filled icon in bookmarked tab */}
+                                  <BookmarkAddedIcon color="primary" /> 
+                                </IconButton>
                                 <CardActionArea onClick={() => handleOpenResourceModal(resource)}>
                                   <CardContent>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                      <Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
-                                        {resource.topic}
-                                      </Typography>
-                                      <IconButton 
-                                        size="small" 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleBookmark(resource._id);
-                                        }}
-                                      >
-                                        <BookmarkAddedIcon color="primary" />
-                                      </IconButton>
-                                    </Box>
+                                    {/* Remove the Box containing the IconButton */}
+                                    <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 /* Add padding to prevent overlap */ }}>
+                                      {resource.topic}
+                                    </Typography>
                                     
                                     {/* Display Average Rating */}
                                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>

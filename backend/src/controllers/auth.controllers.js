@@ -1,9 +1,13 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js"
-import bcrypt from "bcryptjs"
-import UserOTPVerification from "../models/userOtpVerification.models.js";
+
 import { sendOTPVerificationEmail } from "../lib/sendOTPVerification.js";
+
+import  bcrypt from "bcryptjs"
+import UserOTPVerification from "../models/userOTPVerification.models.js"; // Corrected casing
+// import router from "../routes/auth.routes.js";
+
 
 // Step 1: Initial signup - store user data and send OTP
 export const signup = async (req, res) => {

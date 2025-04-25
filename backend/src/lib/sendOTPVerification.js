@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
-import UserOTPVerification from "../models/userOtpVerification.models.js";
 import transporter from "./email.js"; // Import the shared transporter
+import UserOTPVerification from "../models/userOTPVerification.models.js";
 
 export const sendOTPVerificationEmail = async ({ _id, email }, res, pendingUser) => {
     try {

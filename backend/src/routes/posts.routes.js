@@ -4,7 +4,7 @@ import { createPost, getAllPosts, updatePostLikes } from "../controllers/posts.c
 
 const router = express.Router();
 
-router.get("/", getAllPosts);
+router.get("/",protectRoute, getAllPosts);
 router.post("/create", protectRoute, createPost);
 router.patch("/:postId/likes", protectRoute, updatePostLikes);
 

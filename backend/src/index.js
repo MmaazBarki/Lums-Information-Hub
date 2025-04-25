@@ -12,6 +12,7 @@ import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
+import adminRoutes from "./routes/admin.routes.js"; // Import admin routes
 import { configureCloudinary } from "./lib/cloudinary.js"; // Import the configuration function
 import otpRoutes from "./routes/otp.routes.js";
 import resetPasswordRoutes from "./routes/resetPassword.routes.js";
@@ -37,6 +38,7 @@ app.use("/api/message", messageRoutes); // Faraz: Message Routes
 app.use("/api/resources", academicResourceRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/posts", postRoutes); 
+app.use("/api/admin", adminRoutes); // Add admin routes
 
 app.use("/api/otp", otpRoutes);
 app.use("/api/auth/reset", resetPasswordRoutes);
