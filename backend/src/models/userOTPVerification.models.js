@@ -2,16 +2,16 @@ import mongoose from "mongoose";
 
 const Schema = mongoose.Schema;
 
-const UserOTPVerificationSchema = new Schema({
+const UserOTPVerification = new Schema({
     email: String,
     otp: String,
     createdAt: Date,
     expiredAt: Date
 });
 
-const UserOTPVerification = mongoose.model(
+const userOTPVerification = mongoose.model(
     "UserOTPVerification",
-    UserOTPVerificationSchema
+    UserOTPVerification
 );
 
-export default UserOTPVerification;
+export default userOTPVerification;

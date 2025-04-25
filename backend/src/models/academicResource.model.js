@@ -12,12 +12,12 @@ const ratingSchema = new mongoose.Schema({
         min: 1,
         max: 5,
     },
-}, { _id: false }); // Don't create a separate _id for each rating entry
+}, { _id: false });
 
 const academicResource = new mongoose.Schema({
     uploader_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Will be either student or alumni
+        ref: "User",
         required: true,
     },
     uploader_name: {
@@ -27,7 +27,7 @@ const academicResource = new mongoose.Schema({
     course_code: {
         type: String,
         required: true,
-        ref: "Course", // Reference by course_code, not ObjectId
+        ref: "Course",
     },
     topic: {
         type: String,
@@ -47,7 +47,7 @@ const academicResource = new mongoose.Schema({
         default: "pdf"
     },
     file_size: {
-        type: Number, // Changed to Number to store bytes
+        type: Number,
         required: true,
     },
     downloads: {
@@ -58,7 +58,7 @@ const academicResource = new mongoose.Schema({
         type: String,
         required: true,
     },
-    ratings: [ratingSchema], // Array to store individual ratings
+    ratings: [ratingSchema],
     averageRating: {
         type: Number,
         default: 0,
@@ -75,7 +75,6 @@ const academicResource = new mongoose.Schema({
     },
 });
 
-// Method to calculate and update average rating
 academicResource.methods.calculateAverageRating = function() {
     if (this.ratings.length === 0) {
         this.averageRating = 0;
@@ -85,13 +84,13 @@ academicResource.methods.calculateAverageRating = function() {
         this.averageRating = totalRating / this.ratings.length;
         this.numberOfRatings = this.ratings.length;
     }
-    // Round to one decimal place if needed
+
     this.averageRating = Math.round(this.averageRating * 10) / 10;
 };
 
-// Middleware to recalculate average rating before saving
+
 academicResource.pre('save', function(next) {
-    // Only recalculate if ratings array is modified
+
     if (this.isModified('ratings')) {
         this.calculateAverageRating();
     }
