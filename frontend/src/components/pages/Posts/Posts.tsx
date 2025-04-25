@@ -21,7 +21,9 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions
+    DialogActions,
+    Pagination,
+    Stack
 } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
@@ -37,31 +39,40 @@ interface Post {
     description: string;
     department?: string;
     role?: string;
+    category: string; // Add category field
     number_of_likes: number;
     created_at: string;
     isLikedByCurrentUser?: boolean;
     likes?: string[];
 }
 
+const postCategories = ['Job Post', 'Internship Post', 'Community Post'];
+
 const Posts = () => {
     const { user } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
     const [description, setDescription] = useState<string>('');
     const [title, setTitle] = useState<string>('');
+    const [newPostCategory, setNewPostCategory] = useState<string>('Community Post'); 
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [posting, setPosting] = useState<boolean>(false);
     const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
     const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
+    const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('All'); 
     const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(0);
     const [hasMore, setHasMore] = useState<boolean>(true);
     const [viewedPost, setViewedPost] = useState<Post | null>(null);
+    const [paginationMode, setPaginationMode] = useState<'scroll' | 'pagination'>('scroll');
 
     const observer = useRef<IntersectionObserver | null>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     const lastPostElementRef = useCallback((node: HTMLLIElement | null) => {
+        if (paginationMode !== 'scroll') return;
         if (loading || loadingMore) {
             return;
         }
@@ -84,7 +95,7 @@ const Posts = () => {
         if (node) {
             observer.current.observe(node);
         }
-    }, [loading, loadingMore, hasMore]);
+    }, [loading, loadingMore, hasMore, paginationMode]);
 
     useEffect(() => {
         console.log('Posts component mounted/refreshed');
@@ -93,7 +104,7 @@ const Posts = () => {
         };
     }, []);
 
-    const fetchPosts = useCallback(async (page: number, department: string, loadMore = false) => {
+    const fetchPosts = useCallback(async (page: number, department: string, category: string = 'All', loadMore = false) => {
         if (!loadMore) {
             setLoading(true);
         } else {
@@ -101,7 +112,8 @@ const Posts = () => {
         }
         setError(null);
         try {
-            const url = `/api/posts?page=${page}&limit=10&department=${department}`;
+            const categoryParam = category !== 'All' ? `&category=${category}` : '';
+            const url = `/api/posts?page=${page}&limit=10&department=${department}${categoryParam}`;
             const response = await fetch(url, {
                 method: 'GET',
                 credentials: 'include'
@@ -153,8 +165,10 @@ const Posts = () => {
                 }
 
                 setCurrentPage(data.currentPage);
+                setTotalPages(data.totalPages);
                 const newHasMore = data.currentPage < data.totalPages;
                 setHasMore(newHasMore);
+                setTotalPages(data.totalPages);
             } else {
                 throw new Error('Failed to load posts. Unexpected data format.');
             }
@@ -174,14 +188,14 @@ const Posts = () => {
         setPosts([]);
         setCurrentPage(1);
         setHasMore(true);
-        fetchPosts(1, selectedDepartment);
-    }, [selectedDepartment, fetchPosts]);
+        fetchPosts(1, selectedDepartment, selectedCategoryFilter);
+    }, [selectedDepartment, selectedCategoryFilter, fetchPosts]);
 
     useEffect(() => {
-        if (currentPage > 1 && hasMore) {
-            fetchPosts(currentPage, selectedDepartment, true);
+        if (paginationMode === 'scroll' && currentPage > 1 && hasMore) {
+            fetchPosts(currentPage, selectedDepartment, selectedCategoryFilter, true);
         }
-    }, [currentPage, selectedDepartment, fetchPosts, hasMore]);
+    }, [currentPage, selectedDepartment, selectedCategoryFilter, fetchPosts, hasMore, paginationMode]);
 
     const handleCreatePost = async () => {
         if (!description.trim() || !title.trim()) return;
@@ -194,7 +208,7 @@ const Posts = () => {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({ description, title }),
+                body: JSON.stringify({ description, title, category: newPostCategory }),
             });
 
             const data = await response.json();
@@ -211,11 +225,17 @@ const Posts = () => {
                 newPost.department = user.profile_data?.department;
             }
 
-            if (selectedDepartment === 'All' || newPost.department === selectedDepartment) {
+            const matchesDepartmentFilter = selectedDepartment === 'All' || newPost.department === selectedDepartment;
+            const matchesCategoryFilter = selectedCategoryFilter === 'All' || newPost.category === selectedCategoryFilter;
+            
+            if (matchesDepartmentFilter && matchesCategoryFilter) {
                 setPosts(prevPosts => [newPost, ...prevPosts]);
             }
+            
             setDescription('');
             setTitle('');
+            setNewPostCategory('Community Post');
+            setIsCreateDialogOpen(false);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create post.');
         } finally {
@@ -294,10 +314,27 @@ const Posts = () => {
     const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
         setSelectedDepartment(event.target.value as string);
     };
-
-    const allDepartmentValues = ['All'].concat(
-        schools.flatMap(school => school.departments.map(dept => dept.value))
-    );
+    
+    const handleCategoryFilterChange = (event: SelectChangeEvent<string>) => {
+        setSelectedCategoryFilter(event.target.value as string);
+    };
+    
+    const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+        setCurrentPage(value);
+        setPosts([]); 
+        fetchPosts(value, selectedDepartment, selectedCategoryFilter);
+        
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
+    
+    const togglePaginationMode = () => {
+        setPaginationMode(prev => prev === 'scroll' ? 'pagination' : 'scroll');
+    };
 
     return (
         <Box 
@@ -308,58 +345,48 @@ const Posts = () => {
                 overflowY: 'auto'
             }}
         >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
-                    Community Posts
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Typography variant="h4" gutterBottom sx={{ mb: 0, flexGrow: 1 }}>
+                Posts
                 </Typography>
-                <FormControl sx={{ m: 1, minWidth: 150 }} size="small">
-                    <InputLabel id="department-filter-label">Department</InputLabel>
-                    <Select
-                        labelId="department-filter-label"
-                        id="department-filter-select"
-                        value={selectedDepartment}
-                        label="Department"
-                        onChange={handleDepartmentChange}
-                    >
-                        <MenuItem value="All">All Departments</MenuItem>
-                        {generateGroupedDepartmentOptions()}
-                    </Select>
-                </FormControl>
+                {/* Filters */}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <FormControl sx={{ minWidth: 150 }} size="small">
+                        <InputLabel id="category-filter-label">Category</InputLabel>
+                        <Select
+                            labelId="category-filter-label"
+                            value={selectedCategoryFilter}
+                            label="Category"
+                            onChange={handleCategoryFilterChange}
+                        >
+                            <MenuItem value="All">All Categories</MenuItem>
+                            {postCategories.map(cat => (
+                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl sx={{ minWidth: 150 }} size="small">
+                        <InputLabel id="department-filter-label">Department</InputLabel>
+                        <Select
+                            labelId="department-filter-label"
+                            value={selectedDepartment}
+                            label="Department"
+                            onChange={handleDepartmentChange}
+                        >
+                            <MenuItem value="All">All Departments</MenuItem>
+                            {generateGroupedDepartmentOptions()}
+                        </Select>
+                    </FormControl>
+                </Box>
+                {/* Create Post Button */}
+                <Button
+                    variant="contained"
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    sx={{ mt: { xs: 1, sm: 0 } }} 
+                >
+                    Create Post
+                </Button>
             </Box>
-
-            <Card sx={{ mb: 3 }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                        fullWidth
-                        label="Title"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter a short title for your post..."
-                        variant="outlined"
-                        disabled={posting}
-                        inputProps={{ maxLength: 100 }}
-                    />
-                    <TextField
-                        fullWidth
-                        multiline
-                        rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Share something with the community..."
-                        variant="outlined"
-                        disabled={posting}
-                    />
-                </CardContent>
-                <CardActions sx={{ justifyContent: 'flex-end', p: 2 }}>
-                    <Button
-                        variant="contained"
-                        onClick={handleCreatePost}
-                        disabled={posting || !description.trim() || !title.trim()}
-                    >
-                        {posting ? <CircularProgress size={24} /> : 'Post'}
-                    </Button>
-                </CardActions>
-            </Card>
 
             {error && (
                 <Typography color="error" sx={{ mb: 2 }}>
@@ -399,7 +426,7 @@ const Posts = () => {
                                                         {post.name || 'Anonymous'} {post.role && `(${post.role})`}
                                                     </Typography>
                                                     <Typography variant="caption" color="text.secondary">
-                                                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                                                        {post.category} - {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                                                         {post.department && ` - ${post.department}`}
                                                     </Typography>
                                                 </Box>
@@ -439,10 +466,37 @@ const Posts = () => {
                             <CircularProgress size={30} />
                         </Box>
                     )}
-                    {!hasMore && posts.length > 0 && (
+                    {!hasMore && posts.length > 0 && paginationMode === 'scroll' && (
                         <Typography sx={{ textAlign: 'center', mt: 2, color: 'text.secondary' }}>
                             No more posts to load.
                         </Typography>
+                    )}
+                    
+                    {/* Pagination Controls */}
+                    {posts.length > 0 && !loading && (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 3, mb: 2 }}>
+                            <Button 
+                                onClick={togglePaginationMode} 
+                                sx={{ mb: 2 }}
+                                variant="outlined"
+                                size="small"
+                            >
+                                {paginationMode === 'scroll' ? 'Switch to Page Navigation' : 'Switch to Infinite Scroll'}
+                            </Button>
+                            
+                            {paginationMode === 'pagination' && (
+                                <Stack spacing={2}>
+                                    <Pagination 
+                                        count={totalPages} 
+                                        page={currentPage} 
+                                        onChange={handlePageChange}
+                                        color="primary" 
+                                        showFirstButton 
+                                        showLastButton
+                                    />
+                                </Stack>
+                            )}
+                        </Box>
                     )}
                 </List>
             )}
@@ -459,6 +513,60 @@ const Posts = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setViewedPost(null)} color="primary">Close</Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Create Post Dialog */}
+            <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Create New Post</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Title"
+                        fullWidth
+                        variant="outlined"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        disabled={posting}
+                        inputProps={{ maxLength: 100 }}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Description"
+                        fullWidth
+                        multiline
+                        rows={4}
+                        variant="outlined"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        disabled={posting}
+                        sx={{ mb: 2 }}
+                    />
+                    <FormControl fullWidth margin="dense" disabled={posting}>
+                        <InputLabel id="new-post-category-label">Category</InputLabel>
+                        <Select
+                            labelId="new-post-category-label"
+                            value={newPostCategory}
+                            label="Category"
+                            onChange={(e) => setNewPostCategory(e.target.value as string)}
+                        >
+                            {postCategories.map(cat => (
+                                <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsCreateDialogOpen(false)} disabled={posting}>Cancel</Button>
+                    <Button
+                        onClick={handleCreatePost}
+                        variant="contained"
+                        disabled={posting || !description.trim() || !title.trim() || !newPostCategory}
+                    >
+                        {posting ? <CircularProgress size={24} /> : 'Post'}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

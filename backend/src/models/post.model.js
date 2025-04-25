@@ -21,6 +21,12 @@ const postSchema = new mongoose.Schema({
     role: {
         type: String,
     },
+    category: {
+        type: String,
+        required: true,
+        enum: ['Job Post', 'Internship Post', 'Community Post'],
+        default: 'Community Post'
+    },
     number_of_likes: {
         type: Number,
         default: 0,
