@@ -25,7 +25,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userType = 'student' }) => {
   const { user } = useAuth();
   const profileData = user?.profile_data || {};
   
-  // Render different dashboard content based on user role
   const renderRoleSpecificContent = () => {
     switch(userType) {
       case 'admin':

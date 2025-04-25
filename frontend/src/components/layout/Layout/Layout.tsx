@@ -11,8 +11,6 @@ import {
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-
-// Import components
 import Sidebar from '../Sidebar/Sidebar';
 import ThemeToggle from '../ThemeToggle/ThemeToggle';
 import Dashboard from '../../pages/Dashboard/Dashboard';
@@ -28,15 +26,12 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
-  // Drawer state
   const [isDrawerOpen, setIsDrawerOpen] = useState(true);
   
-  // Get current location from React Router
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Extract the active section from the URL path
   const getActiveSection = () => {
     const path = location.pathname.split('/')[1] || '';
     
@@ -51,21 +46,16 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
   
   const activeSection = getActiveSection();
   
-  // Calculate drawer width based on open/closed state
   const drawerWidth = isDrawerOpen ? 240 : 64;
   
-  // Toggle drawer open/closed
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
   };
   
-  // Function to handle navigation when sidebar item is clicked
   const handleSectionChange = (section: string) => {
-    // Simplified navigation - all users go to the same dashboard route
     navigate(`/${section.toLowerCase()}`);
   };
 
-  // Dummy functions for compatibility
   const handleDrawerToggle = () => {}; 
 
   return (
@@ -116,7 +106,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
         sx={{ 
           display: 'flex', 
           flexGrow: 1,
-          mt: '64px', // Height of the top bar
+          mt: '64px', 
           overflow: 'hidden'
         }}
       >
@@ -139,7 +129,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
               '& .MuiDrawer-paper': {
                 boxSizing: 'border-box',
                 width: drawerWidth,
-                mt: '64px', // Height of the top bar
+                mt: '64px', 
                 height: `calc(100% - 64px)`,
                 overflowX: 'hidden',
                 borderRight: (theme) => `1px solid ${theme.palette.divider}`,

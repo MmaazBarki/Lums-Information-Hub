@@ -29,21 +29,19 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
 }));
 
 const ConversationList: React.FC<ConversationListProps> = ({ 
-  conversations, // This is actually User[]
+  conversations, 
   selectedConversationId, 
   onSelectConversation, 
-  onlineUsers = [], // Default to empty array
+  onlineUsers = [],
   currentUserId
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Filter out the current user and apply search term
   const filteredUsers = conversations
-    .filter(user => user._id !== currentUserId) // Don't show self in the list
+    .filter(user => user._id !== currentUserId) 
     .filter(user => 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      // Removed filtering by lastMessage
     );
 
   return (
@@ -97,18 +95,17 @@ const ConversationList: React.FC<ConversationListProps> = ({
       {/* Conversations List (now User List) */}
       <Box sx={{ overflow: 'auto', flexGrow: 1 }}>
         <List disablePadding>
-          {/* Map over filteredUsers */} 
           {filteredUsers.map((user) => {
             const isOnline = onlineUsers.includes(user._id);
             return (
-              <React.Fragment key={user._id}> {/* Use user._id as key */} 
+              <React.Fragment key={user._id}> 
                 <StyledListItem 
                   sx={{ 
-                    backgroundColor: selectedConversationId === user._id // Use user._id for selection check
+                    backgroundColor: selectedConversationId === user._id
                       ? (theme) => theme.palette.action.selected 
                       : 'transparent'
                   }}
-                  onClick={() => onSelectConversation(user._id)} // Pass user._id to handler
+                  onClick={() => onSelectConversation(user._id)} 
                 >
                   <ListItemAvatar>
                     {/* Add Badge for online status */}
@@ -118,34 +115,19 @@ const ConversationList: React.FC<ConversationListProps> = ({
                       variant="dot"
                       sx={{
                         '& .MuiBadge-dot': {
-                          backgroundColor: isOnline ? '#44b700' : 'grey', // Green if online, grey if offline
+                          backgroundColor: isOnline ? '#44b700' : 'grey', 
                           boxShadow: (theme) => `0 0 0 2px ${theme.palette.background.paper}`,
                         }
                       }}
                     >
-                      <Avatar alt={user.name} src={user.avatar}> {/* Use user.avatar */} 
-                        {user.name.charAt(0)} {/* Fallback to initial */} 
+                      <Avatar alt={user.name} src={user.avatar}> 
+                        {user.name.charAt(0)} 
                       </Avatar>
                     </Badge>
                   </ListItemAvatar>
                   <ListItemText
-                    primary={user.name} // Display user name
-                    // Remove secondary text (lastMessage)
-                    // secondary={ ... }
+                    primary={user.name} 
                   />
-                  {/* Remove timestamp and unread badge */}
-                  {/* <Box display="flex" flexDirection="column" alignItems="flex-end">
-                    <Typography variant="caption" color="text.secondary">
-                      {conversation.timestamp}
-                    </Typography>
-                    {conversation.unread > 0 && (
-                      <Badge 
-                        badgeContent={conversation.unread} 
-                        color="primary" 
-                        sx={{ mt: 1 }}
-                      />
-                    )}
-                  </Box> */}
                 </StyledListItem>
                 <Divider />
               </React.Fragment>
