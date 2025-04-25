@@ -1,6 +1,5 @@
 import {v2 as cloudinary} from "cloudinary";
 
-// Export a function to configure Cloudinary
 export const configureCloudinary = () => {
     console.log("Attempting to configure Cloudinary...");
     console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME ? "Loaded" : "MISSING");
@@ -16,4 +15,4 @@ export const configureCloudinary = () => {
 };
 
 
-export default cloudinary; // Export the cloudinary instance for use elsewhere
+export default cloudinary; 

@@ -1,7 +1,6 @@
 import User from "../models/user.models.js";
 import bcrypt from "bcryptjs";
-import UserOTPVerification from "../models/userOTPVerification.models.js"; // Corrected casing
-// import sendOTPVerificationEmail from "../lib/sendOTPVerification.js"; // use your email sender
+import UserOTPVerification from "../models/userOTPVerification.models.js";
 import { sendOTPVerificationEmail } from "../lib/sendOTPVerification.js";
 
 

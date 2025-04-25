@@ -2,7 +2,6 @@ import User from '../models/user.models.js';
 import Post from '../models/post.model.js';
 import AcademicResource from '../models/academicResource.model.js';
 
-// Get all users
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
@@ -13,7 +12,6 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Delete a user
 export const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -35,7 +33,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Delete a post
 export const deletePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -57,7 +54,7 @@ export const deletePost = async (req, res) => {
   }
 };
 
-// Delete an academic resource
+
 export const deleteResource = async (req, res) => {
   try {
     const { resourceId } = req.params;

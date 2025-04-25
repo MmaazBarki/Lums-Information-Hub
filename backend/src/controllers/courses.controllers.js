@@ -1,26 +1,24 @@
 import Course from "../models/course.model.js";
-import AcademicResource from "../models/academicResource.model.js"; // Import AcademicResource model
 
 export const getAllCourses = async (req, res) => {
     try {
-        // Use aggregation pipeline to count resources for each course
         const coursesWithResourceCount = await Course.aggregate([
             {
                 $lookup: {
-                    from: "academicresources", // The name of the AcademicResource collection in MongoDB (usually lowercase plural)
-                    localField: "course_code", // Field from the courses collection
-                    foreignField: "course_code", // Field from the academicresources collection
-                    as: "resources" // Name of the new array field to add
+                    from: "academicresources", 
+                    localField: "course_code", 
+                    foreignField: "course_code", 
+                    as: "resources"
                 }
             },
             {
                 $addFields: {
-                    resourceCount: { $size: "$resources" } // Add a field with the count of resources
+                    resourceCount: { $size: "$resources" } 
                 }
             },
             {
                 $project: {
-                    resources: 0 // Optionally remove the resources array from the final output
+                    resources: 0 
                 }
             }
         ]);
@@ -34,10 +32,9 @@ export const getAllCourses = async (req, res) => {
 
 export const createCourse = async (req, res) => {
     const { course_code, course_name, description, department, credits } = req.body;
-    const creator_id = req.user._id; // Auth middleware adds this
+    const creator_id = req.user._id; 
 
-    const creator_name = req.user.profile_data.name || "mock_name"; // Mock name for now, replace with actual data from user profile
-    
+    const creator_name = req.user.profile_data.name; 
     if (!course_code || !course_name || !description || !department || !credits) {
         return res.status(400).json({ message: "All fields are required." });
     }
