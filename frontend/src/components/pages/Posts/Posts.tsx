@@ -39,6 +39,8 @@ interface Post {
     role?: string;
     number_of_likes: number;
     created_at: string;
+    isLikedByCurrentUser?: boolean;
+    likes?: string[];
 }
 
 const Posts = () => {
@@ -84,6 +86,13 @@ const Posts = () => {
         }
     }, [loading, loadingMore, hasMore]);
 
+    useEffect(() => {
+        console.log('Posts component mounted/refreshed');
+        return () => {
+            console.log('Posts component unmounted');
+        };
+    }, []);
+
     const fetchPosts = useCallback(async (page: number, department: string, loadMore = false) => {
         if (!loadMore) {
             setLoading(true);
@@ -115,7 +124,34 @@ const Posts = () => {
             const data = await response.json();
 
             if (data && Array.isArray(data.posts)) {
-                setPosts(prevPosts => loadMore ? [...prevPosts, ...data.posts] : data.posts);
+                console.log('Fetched posts data:', data.posts);
+                
+                const fetchedPosts: Post[] = data.posts;
+                const newlyFetchedLikedIds = new Set<string>();
+                
+                fetchedPosts.forEach((post: Post) => {
+                    console.log(`Post ${post._id} isLikedByCurrentUser:`, post.isLikedByCurrentUser);
+                    if (post.isLikedByCurrentUser) {
+                        newlyFetchedLikedIds.add(post._id);
+                    }
+                });
+                
+                console.log('Newly fetched liked IDs:', Array.from(newlyFetchedLikedIds));
+
+                setPosts(prevPosts => loadMore ? [...prevPosts, ...fetchedPosts] : fetchedPosts);
+
+                if (loadMore) {
+                    setLikedPosts(prevLikedPosts => {
+                        const updatedLikedPosts = new Set(prevLikedPosts);
+                        newlyFetchedLikedIds.forEach(id => updatedLikedPosts.add(id));
+                        console.log('Updated liked posts with more:', Array.from(updatedLikedPosts));
+                        return updatedLikedPosts;
+                    });
+                } else {
+                    console.log('Setting liked posts to:', Array.from(newlyFetchedLikedIds));
+                    setLikedPosts(newlyFetchedLikedIds);
+                }
+
                 setCurrentPage(data.currentPage);
                 const newHasMore = data.currentPage < data.totalPages;
                 setHasMore(newHasMore);
@@ -225,9 +261,15 @@ const Posts = () => {
 
             setPosts(currentPosts =>
                 currentPosts.map(post =>
-                    post._id === postId ? { ...post, number_of_likes: data.post.number_of_likes } : post
+                    post._id === postId ? { ...post, number_of_likes: data.post.number_of_likes, isLikedByCurrentUser: increment } : post
                 )
             );
+            setLikedPosts(prevLiked => {
+                const updated = new Set(prevLiked);
+                if (increment) updated.add(postId);
+                else updated.delete(postId);
+                return updated;
+            });
 
         } catch (err) {
             alert(`Error updating likes: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -253,7 +295,6 @@ const Posts = () => {
         setSelectedDepartment(event.target.value as string);
     };
 
-    // Create a flat array of all department values for the "All" option
     const allDepartmentValues = ['All'].concat(
         schools.flatMap(school => school.departments.map(dept => dept.value))
     );
