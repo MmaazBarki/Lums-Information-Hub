@@ -369,11 +369,11 @@ const Posts = () => {
                                             <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mb: 1 }}>
                                                 {truncated}
                                             </Typography>
-                                            <Button size="small" onClick={() => setViewedPost(post)}>
-                                                View
-                                            </Button>
                                         </CardContent>
                                         <CardActions disableSpacing sx={{ justifyContent: 'space-between', px: 2, pb: 1 }}>
+                                            <Button size="small" onClick={() => setViewedPost(post)} sx={{ alignSelf: 'flex-start' }}>
+                                                View
+                                            </Button>
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                                 <IconButton size="small" onClick={() => handleToggleLike(post._id)}>
                                                     {likedPosts.has(post._id) ? (
