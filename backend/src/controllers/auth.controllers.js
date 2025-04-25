@@ -147,14 +147,6 @@ export const login = async (req, res) => {
             return res.status(400).json({message: "Email not found"})
         }
         
-        if (!user.verified) {
-            return res.status(403).json({
-                message: "Email not verified. Please complete signup verification.",
-                needsVerification: true,
-                email: user.email
-            });
-        }
-        
         const isPasswordCorrect = await bcrypt.compare(password, user.password)
         if(!isPasswordCorrect){
             return res.status(400).json({message: "Invalid Password"})

@@ -1,5 +1,25 @@
 import mongoose from "mongoose";
 
+const profileDataSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: false
+    },
+    bio: {
+        type: String,
+        required: false
+    },
+    interests: {
+        type: [String],
+        required: false
+    },
+    bookmarks: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AcademicResource'
+    }],
+    // Any other profile data fields can be defined here
+}, { _id: false, strict: false }); // Keep it flexible with strict: false
+
 const user = new mongoose.Schema(
     {
         email: {
@@ -53,7 +73,7 @@ const user = new mongoose.Schema(
             required: false,
         },
         profile_data: {
-            type: mongoose.Schema.Types.Mixed,
+            type: profileDataSchema,
             default: function () {
                 return this.role === "admin" ? undefined : {};
             },

@@ -17,6 +17,7 @@ import Dashboard from '../../pages/Dashboard/Dashboard';
 import Messages from '../../pages/Messages/Messages';
 import Posts from '../../pages/Posts/Posts';
 import Courses from '../../pages/Courses/Courses';
+import BookmarkedResources from '../../pages/BookmarkedResources/BookmarkedResources';
 import Profile from '../../pages/Profile/Profile';
 import Admin from '../../pages/Admin/Admin';
 import { useAuth } from '../../../context/AuthContext';
@@ -39,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
     if (path === 'messages') return 'Messages';
     if (path === 'posts') return 'Posts';
     if (path === 'courses') return 'Courses';
+    if (path === 'bookmarks') return 'Bookmarks';
     if (path === 'admin') return 'Admin';
     
     return 'Dashboard';
@@ -176,6 +178,7 @@ const Layout: React.FC<LayoutProps> = ({ toggleColorMode }) => {
               <Route path="/messages/*" element={<Messages />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/courses" element={<Courses />} />
+              <Route path="/bookmarks" element={<BookmarkedResources />} />
               <Route path="/profile" element={<Profile />} />
               
               {/* Admin routes - only for admin users */}

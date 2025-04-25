@@ -13,6 +13,7 @@ import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import bookmarkRoutes from "./routes/bookmark.routes.js";
 import { configureCloudinary } from "./lib/cloudinary.js";
 import otpRoutes from "./routes/otp.routes.js";
 import resetPasswordRoutes from "./routes/resetPassword.routes.js";
@@ -39,6 +40,7 @@ app.use("/api/resources", academicResourceRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/posts", postRoutes); 
 app.use("/api/admin", adminRoutes);
+app.use("/api/bookmarks", bookmarkRoutes);
 
 app.use("/api/otp", otpRoutes);
 app.use("/api/auth/reset", resetPasswordRoutes);
