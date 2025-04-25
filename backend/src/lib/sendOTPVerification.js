@@ -1,27 +1,11 @@
-import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
+import transporter from "./email.js"; // Import the shared transporter
 import UserOTPVerification from "../models/userOTPVerification.models.js";
 
-export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
+export const sendOTPVerificationEmail = async ({ _id, email }, res, pendingUser) => {
     try {
         const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: process.env.AUTH_EMAIL,
-                pass: process.env.AUTH_PASS,
-            },
-        });
-        // const transporter = nodemailer.createTransport({
-        //     host: "smtp.gmail.com",
-        //     port: 465,
-        //     secure: true, // true for 465
-        //     auth: {
-        //       user: process.env.AUTH_EMAIL,
-        //       pass: process.env.AUTH_PASS,
-        //     },
-        //   });
-          
+        console.log("Generated OTP:", otp); // Helpful for debugging
 
         const mailOptions = {
             from: process.env.AUTH_EMAIL,
@@ -32,6 +16,9 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
 
         const saltRounds = 10;
         const hashedOTP = await bcrypt.hash(otp, saltRounds);
+
+        // Remove any existing OTP for this email
+        await UserOTPVerification.deleteMany({ email: email });
 
         const newOTPVerification = new UserOTPVerification({
             email: email,
@@ -49,9 +36,11 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
             data: {
                 userId: _id,
                 email,
+                pendingUser: pendingUser,
             },
         });
     } catch (error) {
+        console.error("OTP Email Error:", error);
         res.status(500).json({
             status: "FAILED",
             message: error.message,

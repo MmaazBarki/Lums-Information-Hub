@@ -12,6 +12,7 @@ import {
 import Layout from './components/layout/Layout/Layout';
 import Login from './components/pages/Auth/Login';
 import Signup from './components/pages/Auth/Signup';
+import ForgotPassword from './components/pages/Auth/ForgotPassword';
 
 // Import theme
 import { getTheme } from './theme/theme';
@@ -95,38 +96,53 @@ const App: React.FC = () => {
     });
   };
 
-  return (
-    <BrowserRouter> {/* Move BrowserRouter to wrap AuthProvider */}
+ return (
+  <BrowserRouter>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <AuthProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          {/* Routes are now descendants of BrowserRouter and AuthProvider */}
+        <Box sx={{ 
+          width: '100%', 
+          height: '100vh',
+          padding: 0,
+          margin: 0,
+          overflow: 'hidden'
+        }}>
           <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
-
-            {/* Protected Routes */}
-            <Route 
-              path="/*" 
+            {/* Redirect root to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            
+            {/* Auth routes - public access only */}
+            <Route path="/login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+            <Route path="/signup" element={
+              <PublicRoute>
+                <Signup />
+              </PublicRoute>
+            } />
+            <Route path="/forgot-password" element={
+              <PublicRoute>
+                <ForgotPassword />
+              </PublicRoute>
+            } />
+            
+            {/* All protected routes wrapped in a single Layout */}
+            <Route
+              path="/*"
               element={
                 <ProtectedRoute>
-                  <Layout toggleColorMode={toggleColorMode}> 
-                    {/* Nested routes are rendered within Layout's Outlet */}
-                  </Layout>
+                  <Layout toggleColorMode={toggleColorMode} />
                 </ProtectedRoute>
-              } 
+              }
             />
-            {/* Define specific protected routes if needed, or handle within Layout */}
-            {/* Example: <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> */}
-            
-            {/* Fallback route - redirects authenticated users to dashboard, others to login */}
-            <Route path="*" element={<Navigate to="/login" replace />} /> 
           </Routes>
-        </ThemeProvider>
+        </Box>
       </AuthProvider>
-    </BrowserRouter>
-  );
-};
+    </ThemeProvider>
+  </BrowserRouter>
+);
 
 export default App;

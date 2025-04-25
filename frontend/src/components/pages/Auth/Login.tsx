@@ -8,6 +8,7 @@ import {
   Alert,
   Paper,
   CircularProgress,
+  Grid,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
@@ -158,12 +159,21 @@ const Login: React.FC = () => {
             </form>
             
             <Box sx={{ mt: 4, textAlign: 'center' }}>
-              <Typography variant="body2">
-                Don't have an account?{' '}
-                <Link component={RouterLink} to="/signup">
-                  Sign up
-                </Link>
-              </Typography>
+              <Grid container>
+                <Grid item xs>
+                  <Link component={RouterLink} to="/forgot-password">
+                    Forgot password?
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Typography variant="body2">
+                    Don't have an account?{' '}
+                    <Link component={RouterLink} to="/signup">
+                      Sign up
+                    </Link>
+                  </Typography>
+                </Grid>
+              </Grid>
             </Box>
           </Box>
         </Box>
