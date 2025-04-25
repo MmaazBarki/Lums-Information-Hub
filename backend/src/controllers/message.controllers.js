@@ -2,6 +2,7 @@ import User from "../models/user.models.js";
 import Message from "../models/message.models.js";
 import cloudinary from "../lib/cloudinary.js"; 
 import { getReceiverSocketId, io } from "../lib/socket.js";
+import { createMessageNotification } from "./notification.controllers.js";
 
 export const getUsersForSidebar = async (req, res) => {
     try {
@@ -48,6 +49,11 @@ export const sendMessage = async (req, res) => {
             image: imageUrl 
         });
         await newMessage.save();
+        
+        const sender = await User.findById(senderId);
+        const senderName = sender?.profile_data?.name || sender.email;
+        
+        await createMessageNotification(newMessage, senderName);
         
         const receiverSocketId = getReceiverSocketId(receiverId);
         if (receiverSocketId) {

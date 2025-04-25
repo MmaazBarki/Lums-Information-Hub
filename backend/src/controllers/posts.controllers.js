@@ -1,5 +1,6 @@
 import Post from "../models/post.model.js";
 import User from "../models/user.models.js";
+import { createPostNotification } from "./notification.controllers.js";
 
 export const getAllPosts = async (req, res) => {
     try {
@@ -67,6 +68,9 @@ export const createPost = async (req, res) => {
         });
 
         await newPost.save();
+        
+        await createPostNotification(newPost, creator_id);
+        
         res.status(201).json({ post: newPost });
     }
     catch (error) {
