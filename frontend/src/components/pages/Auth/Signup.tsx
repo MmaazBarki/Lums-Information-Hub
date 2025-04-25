@@ -13,10 +13,13 @@ import {
   InputLabel,
   CircularProgress,
   FormHelperText,
+  SelectChangeEvent,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
 import { useAuth } from '../../../context/AuthContext';
+import { generateGroupedDepartmentOptions } from '../../../constants/departments.tsx'; // Update import path and function name
+
 
 interface ProfileData {
   name?: string;
@@ -30,17 +33,25 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
-  const [profileData, setProfileData] = useState<ProfileData>({});
+  const [profileData, setProfileData] = useState<ProfileData>({ department: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { signup } = useAuth();
 
-  // Handle profile data change
-  const handleProfileDataChange = (field: keyof ProfileData, value: string) => {
+  // Handle profile data change for TextField
+  const handleProfileTextFieldChange = (field: keyof ProfileData, value: string) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  // Handle department change for Select
+  const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
+    setProfileData(prev => ({
+      ...prev,
+      department: event.target.value as string
     }));
   };
 
@@ -79,7 +90,7 @@ const Signup: React.FC = () => {
     // Profile data validation for students and alumni
     if (role !== 'admin') {
       if (!profileData.name || !profileData.department) {
-        setError('Profile data is required for students and alumni');
+        setError('Name and Department are required for students and alumni');
         setLoading(false);
         return;
       }
@@ -123,23 +134,28 @@ const Signup: React.FC = () => {
         <TextField
           label="Full Name"
           value={profileData.name || ''}
-          onChange={(e) => handleProfileDataChange('name', e.target.value)}
+          onChange={(e) => handleProfileTextFieldChange('name', e.target.value)}
           fullWidth
           required
         />
-        <TextField
-          label="Department"
-          value={profileData.department || ''}
-          onChange={(e) => handleProfileDataChange('department', e.target.value)}
-          fullWidth
-          required
-        />
+        {/* Department Dropdown */}
+        <FormControl fullWidth required>
+          <InputLabel id="department-select-label">Department</InputLabel>
+          <Select
+            labelId="department-select-label"
+            value={profileData.department || ''}
+            label="Department"
+            onChange={handleDepartmentChange}
+          >
+            {generateGroupedDepartmentOptions()}
+          </Select>
+        </FormControl>
         
         {role === 'student' && (
           <TextField
             label="Roll Number"
             value={profileData.rollNumber || ''}
-            onChange={(e) => handleProfileDataChange('rollNumber', e.target.value)}
+            onChange={(e) => handleProfileTextFieldChange('rollNumber', e.target.value)}
             fullWidth
             required
           />
@@ -149,7 +165,7 @@ const Signup: React.FC = () => {
           <TextField
             label="Graduation Year"
             value={profileData.graduationYear || ''}
-            onChange={(e) => handleProfileDataChange('graduationYear', e.target.value)}
+            onChange={(e) => handleProfileTextFieldChange('graduationYear', e.target.value)}
             fullWidth
             required
           />
@@ -299,7 +315,7 @@ const Signup: React.FC = () => {
                 <TextField
                   label="Confirm Password"
                   type="password"
-                  value={confirmPassword}
+                  value={confirmPassword || ''}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   fullWidth
                   required

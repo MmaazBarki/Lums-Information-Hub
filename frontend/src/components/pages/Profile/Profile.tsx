@@ -18,11 +18,17 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useAuth } from '../../../context/AuthContext';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import LockIcon from '@mui/icons-material/Lock';
+import { generateGroupedDepartmentOptions } from '../../../constants/departments.tsx';
 
 interface ProfileProps {}
 
@@ -55,12 +61,20 @@ const Profile: React.FC<ProfileProps> = () => {
     confirmPassword: '',
   });
 
-  // Handle profile form changes
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle profile form changes for TextFields
+  const handleProfileTextFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setProfileFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  // Handle department change for Select
+  const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
+    setProfileFormData(prev => ({
+      ...prev,
+      department: event.target.value as string
     }));
   };
 
@@ -306,7 +320,7 @@ const Profile: React.FC<ProfileProps> = () => {
                         label="Full Name"
                         name="name"
                         value={profileFormData.name}
-                        onChange={handleProfileChange}
+                        onChange={handleProfileTextFieldChange}
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -325,17 +339,22 @@ const Profile: React.FC<ProfileProps> = () => {
                         label="Alternate Email"
                         name="alternateEmail"
                         value={profileFormData.alternateEmail}
-                        onChange={handleProfileChange}
+                        onChange={handleProfileTextFieldChange}
                       />
                     </Grid>
                     <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Department"
-                        name="department"
-                        value={profileFormData.department}
-                        onChange={handleProfileChange}
-                      />
+                      <FormControl fullWidth margin="normal">
+                        <InputLabel id="department-select-label">Department</InputLabel>
+                        <Select
+                          labelId="department-select-label"
+                          name="department"
+                          value={profileFormData.department || ''}
+                          label="Department"
+                          onChange={handleDepartmentChange}
+                        >
+                          {generateGroupedDepartmentOptions()}
+                        </Select>
+                      </FormControl>
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
@@ -343,7 +362,7 @@ const Profile: React.FC<ProfileProps> = () => {
                         label="Batch / Year"
                         name="batch"
                         value={profileFormData.batch}
-                        onChange={handleProfileChange}
+                        onChange={handleProfileTextFieldChange}
                       />
                     </Grid>
                     <Grid item xs={12}>
@@ -352,7 +371,7 @@ const Profile: React.FC<ProfileProps> = () => {
                         label="Bio"
                         name="bio"
                         value={profileFormData.bio}
-                        onChange={handleProfileChange}
+                        onChange={handleProfileTextFieldChange}
                         multiline
                         rows={4}
                       />
