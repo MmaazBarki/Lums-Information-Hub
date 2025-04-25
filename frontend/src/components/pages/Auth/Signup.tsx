@@ -15,31 +15,41 @@ import {
   FormHelperText,
   SelectChangeEvent,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
 import { useAuth } from '../../../context/AuthContext';
-import { generateGroupedDepartmentOptions } from '../../../constants/departments'; // Import the department options generator
-
+import { generateGroupedDepartmentOptions } from '../../../constants/departments';
 
 interface ProfileData {
   name?: string;
   department?: string;
   batch?: string;
-  rollNumber?: string;
+  // rollNumber?: string;
+}
+
+interface UserData {
+  email: string;
+  password: string;
+  role: 'student' | 'alumni' | 'admin';
+  profile_data?: ProfileData;
 }
 
 const Signup: React.FC = () => {
+  const [step, setStep] = useState<'form' | 'otp'>('form');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
   const [profileData, setProfileData] = useState<ProfileData>({ department: '' });
+  const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  const { signup } = useAuth();
+  const [userData, setUserData] = useState<UserData | null>(null);
 
-  // Handle profile data change for TextField
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const handleProfileTextFieldChange = (field: keyof ProfileData, value: string) => {
     setProfileData(prev => ({
       ...prev,
@@ -47,7 +57,6 @@ const Signup: React.FC = () => {
     }));
   };
 
-  // Handle department change for Select
   const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
     setProfileData(prev => ({
       ...prev,
@@ -55,12 +64,12 @@ const Signup: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInitialSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
     setLoading(true);
-    
-    // Basic validation
+
     if (!email || !password) {
       setError('All fields are required');
       setLoading(false);
@@ -73,7 +82,6 @@ const Signup: React.FC = () => {
       return;
     }
 
-    // Password validation regex - at least one capital letter and one special character
     const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])/;
     if (!passwordRegex.test(password)) {
       setError('Password must contain at least one capital letter and one special character');
@@ -87,20 +95,19 @@ const Signup: React.FC = () => {
       return;
     }
 
-    // Profile data validation for students and alumni
     if (role !== 'admin') {
       if (!profileData.name || !profileData.department) {
         setError('Name and Department are required for students and alumni');
         setLoading(false);
         return;
       }
-      
-      if (role === 'student' && !profileData.rollNumber) {
-        setError('Roll number is required for students');
-        setLoading(false);
-        return;
-      }
-      
+
+      // if (role === 'student' && !profileData.rollNumber) {
+      //   setError('Roll number is required for students');
+      //   setLoading(false);
+      //   return;
+      // }
+
       if (role === 'alumni' && !profileData.batch) {
         setError('Graduation year is required for alumni');
         setLoading(false);
@@ -109,24 +116,131 @@ const Signup: React.FC = () => {
     }
 
     try {
-      await signup({
+      const newUserData = {
         email,
         password,
         role,
         profile_data: role !== 'admin' ? profileData : undefined
+      };
+
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newUserData),
+        credentials: 'include',
       });
+
+      const data = await response.json();
+      // console.log("response from verification", data);
       
-      // Navigation will be handled in the AuthContext based on user role
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      console.log("pending user data in response", data.data.pendingUser);
+
+      setUserData(data.data.pendingUser);
+      setSuccessMessage('An OTP has been sent to your email. Please check your inbox.');
+      setStep('otp');
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
 
-  // Render role-specific profile fields
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccessMessage('');
+    setLoading(true);
+
+    if (!otp) {
+      setError('Please enter the OTP sent to your email');
+      setLoading(false);
+      return;
+    }
+
+    if (!userData) {
+      setError('Session expired. Please start the signup process again.');
+      setStep('form');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/verify-signup-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          otp,
+          userData,
+        }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'OTP verification failed');
+      }
+
+      setSuccessMessage('Account created successfully! Redirecting to login...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OTP verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOTP = async () => {
+    if (!userData) {
+      setError('Session expired. Please start the signup process again.');
+      setStep('form');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const response = await fetch('/api/auth/resend-signup-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userData.email }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to resend OTP');
+      }
+
+      setSuccessMessage('A new OTP has been sent to your email');
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderProfileFields = () => {
     if (role === 'admin') {
-      return null; // No profile fields for admin
+      return null;
     }
 
     return (
@@ -138,7 +252,6 @@ const Signup: React.FC = () => {
           fullWidth
           required
         />
-        {/* Department Dropdown with properly grouped options */}
         <FormControl fullWidth required>
           <InputLabel id="department-select-label">Department</InputLabel>
           <Select
@@ -150,7 +263,7 @@ const Signup: React.FC = () => {
             {generateGroupedDepartmentOptions()}
           </Select>
         </FormControl>
-        
+{/* 
         {role === 'student' && (
           <TextField
             label="Roll Number"
@@ -159,8 +272,8 @@ const Signup: React.FC = () => {
             fullWidth
             required
           />
-        )}
-        
+        )} */}
+
         {role === 'alumni' && (
           <TextField
             label="Graduation Year"
@@ -183,7 +296,7 @@ const Signup: React.FC = () => {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: (theme) => theme.palette.background.default,
-        overflow: 'hidden', // Prevent body overflow
+        overflow: 'hidden',
         py: { xs: 4, sm: 0 },
       }}
     >
@@ -199,14 +312,13 @@ const Signup: React.FC = () => {
           borderRadius: 2,
         }}
       >
-        {/* Left side - Image */}
         <Box 
           sx={{ 
             width: { xs: '100%', md: '50%' },
             display: { xs: 'none', md: 'block' },
             bgcolor: 'primary.main',
             position: 'relative',
-            minHeight: { xs: '200px', md: 'unset' }, // min height on small screens
+            minHeight: { xs: '200px', md: 'unset' },
             justifyContent: 'center',
             alignItems: 'center',
           }}
@@ -223,14 +335,13 @@ const Signup: React.FC = () => {
           />
         </Box>
 
-        {/* Right side - Form */}
         <Box
           sx={{
-            width: { xs: '100%', md: '50%' }, // Full width on small screens
+            width: { xs: '100%', md: '50%' },
             maxHeight: { xs: '90vh', md: '80vh' },
             display: 'flex',
             flexDirection: 'column',
-            overflowY: 'auto', // Enable vertical scrolling
+            overflowY: 'auto',
             p: { xs: 3, md: 4 },
             '&::-webkit-scrollbar': {
               width: '8px',
@@ -254,78 +365,125 @@ const Signup: React.FC = () => {
             py: 2,
           }}>
             <Typography variant="h4" component="h1" gutterBottom textAlign="center">
-              Create Account
+              {step === 'form' ? 'Create Account' : 'Verify Email'}
             </Typography>
             
             <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
-              Please fill in your details
+              {step === 'form' 
+                ? 'Please fill in your details' 
+                : `We've sent a verification code to ${email}`
+              }
             </Typography>
             
             {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+            {successMessage && <Alert severity="success" sx={{ mb: 3 }}>{successMessage}</Alert>}
             
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                <FormControl fullWidth>
-                  <InputLabel id="role-select-label">I am a</InputLabel>
-                  <Select
-                    labelId="role-select-label"
-                    value={role}
-                    label="I am a"
-                    onChange={(e) => setRole(e.target.value as 'student' | 'alumni' | 'admin')}
-                  >
-                    <MenuItem value="student">Student</MenuItem>
-                    <MenuItem value="alumni">Alumni</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
-                  </Select>
-                  <FormHelperText>Select your role at LUMS</FormHelperText>
-                </FormControl>
+            {step === 'form' ? (
+              <form onSubmit={handleInitialSignup}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  <FormControl fullWidth>
+                    <InputLabel id="role-select-label">I am a</InputLabel>
+                    <Select
+                      labelId="role-select-label"
+                      value={role}
+                      label="I am a"
+                      onChange={(e) => setRole(e.target.value as 'student' | 'alumni' | 'admin')}
+                    >
+                      <MenuItem value="student">Student</MenuItem>
+                      <MenuItem value="alumni">Alumni</MenuItem>
+                      <MenuItem value="admin">Admin</MenuItem>
+                    </Select>
+                    <FormHelperText>Select your role at LUMS</FormHelperText>
+                  </FormControl>
 
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  fullWidth
-                  required
-                  autoComplete="email"
-                />
-                
-                <TextField
-                  label="Password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  fullWidth
-                  required
-                  autoComplete="new-password"
-                  helperText="Password must be at least 6 characters"
-                />
-                
-                <TextField
-                  label="Confirm Password"
-                  type="password"
-                  value={confirmPassword || ''}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  fullWidth
-                  required
-                  autoComplete="new-password"
-                />
-                
-                {/* Render role-specific profile fields */}
-                {renderProfileFields()}
-                
-                <Button
-                  type="submit"
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  sx={{ mt: 1 }}
-                  disabled={loading}
-                >
-                  {loading ? <CircularProgress size={24} /> : 'Sign Up'}
-                </Button>
-              </Box>
-            </form>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    fullWidth
+                    required
+                    autoComplete="email"
+                  />
+                  
+                  <TextField
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    fullWidth
+                    required
+                    autoComplete="new-password"
+                    helperText="Password must be at least 6 characters"
+                  />
+                  
+                  <TextField
+                    label="Confirm Password"
+                    type="password"
+                    value={confirmPassword || ''}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    fullWidth
+                    required
+                    autoComplete="new-password"
+                  />
+                  
+                  {renderProfileFields()}
+                  
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    sx={{ mt: 1 }}
+                    disabled={loading}
+                  >
+                    {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+                  </Button>
+                </Box>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyOTP}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                  <TextField
+                    label="Verification Code"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    fullWidth
+                    required
+                    autoFocus
+                    inputProps={{ maxLength: 4 }}
+                  />
+                  
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    sx={{ mt: 1 }}
+                    disabled={loading}
+                  >
+                    {loading ? <CircularProgress size={24} /> : 'Verify'}
+                  </Button>
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                    <Button 
+                      onClick={handleResendOTP} 
+                      disabled={loading}
+                      size="small"
+                    >
+                      Resend Code
+                    </Button>
+                    <Button 
+                      onClick={() => setStep('form')} 
+                      disabled={loading}
+                      size="small"
+                    >
+                      Back
+                    </Button>
+                  </Box>
+                </Box>
+              </form>
+            )}
             
             <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
               <Typography variant="body2">

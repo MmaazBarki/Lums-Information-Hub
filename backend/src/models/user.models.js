@@ -12,6 +12,11 @@ const user = new mongoose.Schema(
             required: true,
             minlength: 6,
         },
+        verified: {
+            type: Boolean,
+            default: false,
+            required: true,
+        },
         alternate_email: {
             type: String,
             required: false,

@@ -12,6 +12,7 @@ import {
 import Layout from './components/layout/Layout/Layout';
 import Login from './components/pages/Auth/Login';
 import Signup from './components/pages/Auth/Signup';
+import ForgotPassword from './components/pages/Auth/ForgotPassword';
 
 // Import theme
 import { getTheme } from './theme/theme';
@@ -124,6 +125,11 @@ const App: React.FC = () => {
               <Route path="/signup" element={
                 <PublicRoute>
                   <Signup />
+                </PublicRoute>
+              } />
+              <Route path="/forgot-password" element={
+                <PublicRoute>
+                  <ForgotPassword />
                 </PublicRoute>
               } />
               

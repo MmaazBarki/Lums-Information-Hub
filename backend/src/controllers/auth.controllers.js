@@ -1,10 +1,11 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js"
-import  bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs"
 import UserOTPVerification from "../models/userOtpVerification.models.js";
-// import router from "../routes/auth.routes.js";
+import { sendOTPVerificationEmail } from "../lib/sendOTPVerification.js";
 
+// Step 1: Initial signup - store user data and send OTP
 export const signup = async (req, res) => {
     const { role, email, password, profile_data } = req.body;
 
@@ -49,25 +50,26 @@ export const signup = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create new user
-        const newUser = new User({
+        // Create user with verified = false, but don't save to DB yet
+        const pendingUser = {
             role,
             email,
             password: hashedPassword,
             profile_data: finalProfileData,
-        });
+            verified: false, // Add verification status
+        };
 
-        await newUser.save()
-
-        // Generate Token
-        generateToken(newUser._id, res);
-
-        res.status(201).json({
-            _id: newUser._id,
-            role: newUser.role,
-            email: newUser.email,
-            profile_data: newUser.profile_data || null, // Return null if not applicable
-        });
+        // Store pending user data in OTP collection with verification data
+        await UserOTPVerification.deleteMany({ email }); // Remove any existing OTPs for this email
+        
+        // Send verification email and get OTP details
+        await sendOTPVerificationEmail({ _id: null, email }, res, pendingUser);
+        
+        // We don't save the user yet - we'll create them after OTP verification
+        // Store pending user data temporarily in the session if needed
+        
+        // Do not return full user object yet since verification is pending
+        return;
 
     } catch (error) {
         console.error("Error in signup Controller:", error.message);
@@ -75,6 +77,90 @@ export const signup = async (req, res) => {
     }
 };
 
+// Step 2: Verify OTP and complete signup
+export const verifySignupOTP = async (req, res) => {
+    try {
+        const { email, otp, userData } = req.body;
+        
+        if (!email || !otp || !userData) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+        
+        // Find the OTP record
+        const otpRecord = await UserOTPVerification.findOne({ email }).sort({ createdAt: -1 });
+        if (!otpRecord) {
+            return res.status(400).json({ message: "Invalid or expired OTP. Please signup again." });
+        }
+        
+        // Check if OTP is expired
+        if (otpRecord.expiredAt < Date.now()) {
+            await UserOTPVerification.deleteMany({ email });
+            return res.status(400).json({ message: "OTP has expired. Please signup again." });
+        }
+        
+        // Verify OTP
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Incorrect OTP. Please try again." });
+        }
+        
+        // hashed = await bcrypt.hash(userData.password, 10);
+        // OTP is valid, extract user data
+        const { role, password, profile_data } = userData;
+
+        
+
+        // Create and save the verified user
+        const newUser = new User({
+            role,
+            email,
+            password, // Already hashed during initial signup
+            profile_data: profile_data,
+            verified: true,
+        });
+        
+        await newUser.save();
+        
+        // Delete the OTP record
+        await UserOTPVerification.deleteMany({ email });
+        
+        // Generate Token
+        generateToken(newUser._id, res);
+        
+        res.status(201).json({
+            _id: newUser._id,
+            role: newUser.role,
+            email: newUser.email,
+            profile_data: newUser.profile_data || null,
+            verified: newUser.verified,
+        });
+        
+    } catch (error) {
+        console.error("Error in verifySignupOTP controller:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+// Generate and send a new OTP for signup
+export const resendSignupOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        
+        // Check if there's any existing OTP
+        await UserOTPVerification.deleteMany({ email });
+        
+        // Send new OTP
+        await sendOTPVerificationEmail({ _id: null, email }, res);
+        
+    } catch (error) {
+        console.error("Error in resendSignupOTP controller:", error.message);
+        res.status(500).json({ message: "Failed to resend OTP" });
+    }
+};
 
 export const login = async (req, res) => {
     const {email, password} = req.body
@@ -86,6 +172,16 @@ export const login = async (req, res) => {
         if(!user){
             return res.status(400).json({message: "Email not found"})
         }
+        
+        // Check if user is verified
+        if (!user.verified) {
+            return res.status(403).json({
+                message: "Email not verified. Please complete signup verification.",
+                needsVerification: true,
+                email: user.email
+            });
+        }
+        
         const isPasswordCorrect = await bcrypt.compare(password, user.password)
         if(!isPasswordCorrect){
             return res.status(400).json({message: "Invalid Password"})
@@ -253,4 +349,99 @@ export const checkAuth = (req, res) => {
         console.log("Error in checkAuth controller", error.message);
         res.status(500).json( {message: "Internal Server Error"});
     }
-}
+};
+
+// Add route to allow users to request verification if they haven't completed it
+export const requestVerificationEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+        
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        // Check if already verified
+        if (user.verified) {
+            return res.status(400).json({ message: "Email is already verified" });
+        }
+        
+        // Remove any existing OTPs
+        await UserOTPVerification.deleteMany({ email });
+        
+        // Send verification email
+        await sendOTPVerificationEmail({ _id: user._id, email }, res);
+        
+    } catch (error) {
+        console.error("Error in requestVerificationEmail controller:", error.message);
+        res.status(500).json({ message: "Failed to send verification email" });
+    }
+};
+
+// Complete verification for existing user
+export const completeUserVerification = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+        
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        // If already verified
+        if (user.verified) {
+            return res.status(400).json({ message: "Email is already verified" });
+        }
+        
+        // Find OTP record
+        const otpRecord = await UserOTPVerification.findOne({ email }).sort({ createdAt: -1 });
+        if (!otpRecord) {
+            return res.status(400).json({ message: "Invalid or expired OTP. Please request a new verification code." });
+        }
+        
+        // Check if OTP is expired
+        if (otpRecord.expiredAt < Date.now()) {
+            await UserOTPVerification.deleteMany({ email });
+            return res.status(400).json({ message: "OTP has expired. Please request a new verification code." });
+        }
+        
+        // Verify OTP
+        const isMatch = await bcrypt.compare(otp, otpRecord.otp);
+        if (!isMatch) {
+            return res.status(400).json({ message: "Incorrect OTP. Please try again." });
+        }
+        
+        // OTP is valid, mark user as verified
+        user.verified = true;
+        await user.save();
+        
+        // Delete the OTP record
+        await UserOTPVerification.deleteMany({ email });
+        
+        // Generate Token
+        generateToken(user._id, res);
+        
+        res.status(200).json({
+            _id: user._id,
+            role: user.role,
+            email: user.email,
+            profile_data: user.profile_data || null,
+            verified: user.verified,
+            message: "Email verification completed successfully"
+        });
+        
+    } catch (error) {
+        console.error("Error in completeUserVerification controller:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
