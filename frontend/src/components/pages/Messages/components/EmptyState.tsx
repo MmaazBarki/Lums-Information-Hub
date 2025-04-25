@@ -2,15 +2,14 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Button
 } from '@mui/material';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 interface EmptyStateProps {
-  onNewMessage: () => void;
+  message?: string;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ onNewMessage }) => {
+const EmptyState: React.FC<EmptyStateProps> = ({ message }) => {
   return (
     <Box 
       sx={{ 
@@ -25,18 +24,11 @@ const EmptyState: React.FC<EmptyStateProps> = ({ onNewMessage }) => {
     >
       <ChatBubbleOutlineIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
       <Typography variant="h5" gutterBottom>
-        No conversation selected
+        {message || 'No conversation selected'}
       </Typography>
       <Typography variant="body1" component="div" color="text.secondary" paragraph>
-        Select a conversation from the list or start a new message
+        {message ? '' : 'Select a conversation from the list to start chatting.'}
       </Typography>
-      <Button 
-        variant="contained" 
-        startIcon={<ChatBubbleOutlineIcon />}
-        onClick={onNewMessage}
-      >
-        New Message
-      </Button>
     </Box>
   );
 };
