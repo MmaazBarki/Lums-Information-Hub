@@ -6,6 +6,7 @@ export const getAllPosts = async (req, res) => {
         const { department, page = 1, limit = 10 } = req.query; // Get query params
         const userId = req.user?._id; // Get current user ID if available
 
+
         const query = {};
         if (department && department !== 'All') { // Filter if department is specified and not 'All'
             query.department = department;
@@ -26,7 +27,8 @@ export const getAllPosts = async (req, res) => {
         const postsWithLikeStatus = posts.map(post => ({
             ...post,
             // Check if the current user's ID is in the likes array
-            isLikedByCurrentUser: userId ? post.likes.some(likeId => likeId.equals(userId)) : false
+            isLikedByCurrentUser: userId ? post.likes.some(likeId => likeId.equals(userId)) : null,
+
         }));
 
         // Get total count for pagination info
