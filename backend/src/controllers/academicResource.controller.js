@@ -140,3 +140,30 @@ export const addOrUpdateRating = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
+// New function to increment download count
+export const incrementDownloadCount = async (req, res) => {
+    const { resourceId } = req.params;
+
+    try {
+        const resource = await AcademicResource.findByIdAndUpdate(
+            resourceId,
+            { $inc: { downloads: 1 } }, // Increment the downloads field by 1
+            { new: true } // Return the updated document
+        );
+
+        if (!resource) {
+            return res.status(404).json({ message: "Resource not found." });
+        }
+
+        // Respond with success, optionally send back the new count
+        res.status(200).json({ 
+            message: "Download count updated.", 
+            downloads: resource.downloads 
+        });
+
+    } catch (error) {
+        console.error("Download Count Error:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
