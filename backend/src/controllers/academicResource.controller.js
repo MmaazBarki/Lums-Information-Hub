@@ -1,18 +1,17 @@
 import AcademicResource from "../models/academicResource.model.js";
-import cloudinary from "../lib/cloudinary.js"; // Import Cloudinary utility
-import streamifier from 'streamifier'; // To convert buffer to stream for Cloudinary
-import path from 'path'; // Import path module
+import cloudinary from "../lib/cloudinary.js"; 
+import streamifier from 'streamifier'; 
+import path from 'path'; 
 
-// Helper function to upload buffer to Cloudinary
-const uploadToCloudinary = (buffer, originalFilename) => { // Pass originalFilename
+
+const uploadToCloudinary = (buffer, originalFilename) => { 
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
             {
-                resource_type: "auto", // Automatically detect resource type
-                // Use original filename for public_id, keep extension
+                resource_type: "auto", 
                 public_id: path.parse(originalFilename).name,
                 use_filename: true,
-                unique_filename: false // Try not to append random characters if possible
+                unique_filename: false 
             },
             (error, result) => {
                 if (error) {
@@ -33,10 +32,9 @@ export const uploadResource = async (req, res) => {
         topic,
         description,
       } = req.body;
-    const uploader_id = req.user._id; // Auth middleware adds this
-    const uploader_name = req.user.profile_data.name || "mock_name"; // Mock name for now, replace with actual data from user profile
+    const uploader_id = req.user._id; 
+    const uploader_name = req.user.profile_data.name || "mock_name"; 
 
-    // Check if file was uploaded
     if (!req.file) {
         return res.status(400).json({ message: "No file uploaded." });
     }
@@ -46,7 +44,7 @@ export const uploadResource = async (req, res) => {
     }
     console.log("Uploader ID:", uploader_id);
     console.log("Uploader Name:", uploader_name);
-    console.log("Uploaded File Info:", req.file); // Log file info from multer
+    console.log("Uploaded File Info:", req.file); 
 
     try {
         // Upload file buffer to Cloudinary, passing original filename
@@ -57,7 +55,7 @@ export const uploadResource = async (req, res) => {
             throw new Error("Cloudinary upload failed");
         }
 
-        // Extract file extension
+        // extension extraction
         const fileExtension = path.extname(req.file.originalname).slice(1) || cloudinaryResult.format;
 
         const newResource = new AcademicResource({
@@ -65,20 +63,19 @@ export const uploadResource = async (req, res) => {
             uploader_name,
             course_code,
             topic,
-            original_filename: req.file.originalname, // Store original filename
-            file_url: cloudinaryResult.secure_url, // Use Cloudinary URL
-            file_type: fileExtension, // Store only the extension
-            file_size: cloudinaryResult.bytes, // Use Cloudinary size in bytes
-            role: req.user.role, // Assuming role is part of the user object
+            original_filename: req.file.originalname,
+            file_url: cloudinaryResult.secure_url, 
+            file_type: fileExtension, 
+            file_size: cloudinaryResult.bytes,
+            role: req.user.role, 
             description,
-            downloads: 0 // Default downloads to 0
+            downloads: 0 
         });
 
         await newResource.save();
         res.status(201).json({ message: "Resource uploaded", resource: newResource });
     } catch (error) {
         console.error("Upload Error:", error.message);
-        // Provide more specific error if Cloudinary upload failed
         if (error.message.includes("Cloudinary")) {
              res.status(500).json({ message: "File upload to storage failed." });
         } else {
@@ -92,7 +89,7 @@ export const getResourcesByCourse = async (req, res) => {
 
     try {
         const resources = await AcademicResource.find({ course_code })
-            .populate("uploader_id", "email role");// can have error here
+            .populate("uploader_id", "email role");
         res.status(200).json(resources);
     } catch (error) {
         console.error("Fetch Error:", error.message);
@@ -103,7 +100,7 @@ export const getResourcesByCourse = async (req, res) => {
 export const addOrUpdateRating = async (req, res) => {
     const { resourceId } = req.params;
     const { rating } = req.body;
-    const userId = req.user._id; // Assuming protectRoute middleware adds user info
+    const userId = req.user._id; 
 
     if (!rating || rating < 1 || rating > 5) {
         return res.status(400).json({ message: "Invalid rating value. Must be between 1 and 5." });
@@ -115,18 +112,14 @@ export const addOrUpdateRating = async (req, res) => {
             return res.status(404).json({ message: "Resource not found." });
         }
 
-        // Check if the user has already rated this resource
         const existingRatingIndex = resource.ratings.findIndex(r => r.userId.equals(userId));
 
         if (existingRatingIndex > -1) {
-            // Update existing rating
             resource.ratings[existingRatingIndex].rating = rating;
         } else {
-            // Add new rating
             resource.ratings.push({ userId, rating });
         }
 
-        // The pre-save hook will automatically recalculate the average rating
         await resource.save();
 
         res.status(200).json({ 
@@ -141,22 +134,21 @@ export const addOrUpdateRating = async (req, res) => {
     }
 };
 
-// New function to increment download count
+
 export const incrementDownloadCount = async (req, res) => {
     const { resourceId } = req.params;
 
     try {
         const resource = await AcademicResource.findByIdAndUpdate(
             resourceId,
-            { $inc: { downloads: 1 } }, // Increment the downloads field by 1
-            { new: true } // Return the updated document
+            { $inc: { downloads: 1 } }, 
+            { new: true } 
         );
 
         if (!resource) {
             return res.status(404).json({ message: "Resource not found." });
         }
 
-        // Respond with success, optionally send back the new count
         res.status(200).json({ 
             message: "Download count updated.", 
             downloads: resource.downloads 
@@ -168,7 +160,7 @@ export const incrementDownloadCount = async (req, res) => {
     }
 };
 
-// Function to get all academic resources
+
 export const getAllResources = async (req, res) => {
     try {
         const resources = await AcademicResource.find({})

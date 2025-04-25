@@ -14,26 +14,22 @@ export const sendPasswordResetOTP = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
-    // Generate OTP
     const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
-    console.log("Generated password reset OTP:", otp); // For debugging
+    console.log("Generated password reset OTP:", otp); 
     
     const hashedOtp = await bcrypt.hash(otp, 10);
-    
-    // Remove any existing OTPs for this email
+
     await UserOTPVerification.deleteMany({ email });
     
     const newOTP = new UserOTPVerification({
       email,
       otp: hashedOtp,
       createdAt: Date.now(),
-      expiredAt: Date.now() + 3600000, // 1 hour expiry
+      expiredAt: Date.now() + 3600000,
     });
 
     await newOTP.save();
 
-    // Send email with OTP
     try {
       await transporter.sendMail({
         from: process.env.AUTH_EMAIL,
@@ -50,7 +46,6 @@ export const sendPasswordResetOTP = async (req, res) => {
       
     } catch (emailError) {
       console.error("Error sending email:", emailError);
-      // Clean up the OTP record if email fails
       await UserOTPVerification.deleteOne({ _id: newOTP._id });
       throw new Error(`Failed to send email: ${emailError.message}`);
     }
@@ -86,7 +81,6 @@ export const verifyPasswordResetOTP = async (req, res) => {
       return res.status(400).json({ message: "Incorrect OTP. Please try again." });
     }
 
-    // OTP is valid, update the password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     const updatedUser = await User.findOneAndUpdate(
       { email }, 
@@ -98,7 +92,6 @@ export const verifyPasswordResetOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     
-    // Delete all OTPs for this email after successful password reset
     await UserOTPVerification.deleteMany({ email });
 
     res.json({ message: "Password has been reset successfully" });
