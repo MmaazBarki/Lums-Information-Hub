@@ -12,6 +12,7 @@ import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
+import adminRoutes from "./routes/admin.routes.js"; // Import admin routes
 import { configureCloudinary } from "./lib/cloudinary.js"; // Import the configuration function
 
 // Configure Cloudinary after dotenv has loaded
@@ -34,6 +35,7 @@ app.use("/api/message", messageRoutes); // Faraz: Message Routes
 app.use("/api/resources", academicResourceRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/posts", postRoutes); 
+app.use("/api/admin", adminRoutes); // Add admin routes
 
 server.listen(PORT, ()=>{
     console.log("server is running on port: "+ PORT);
