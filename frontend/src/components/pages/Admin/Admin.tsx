@@ -50,7 +50,6 @@ const Admin: React.FC = () => {
   const [value, setValue] = useState(0);
   const { user } = useAuth();
 
-  // Redirect non-admin users
   if (user?.role !== 'admin') {
     return <Navigate to="/dashboard" />;
   }

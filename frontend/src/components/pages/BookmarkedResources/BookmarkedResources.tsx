@@ -111,10 +111,8 @@ const BookmarkedResources: React.FC = () => {
         throw new Error('Failed to toggle bookmark');
       }
       
-      // Remove the resource from the list since we're unbookmarking it
       setResources(prev => prev.filter(resource => resource._id !== resourceId));
       
-      // If the resource is currently shown in the modal, close the modal
       if (selectedResource && selectedResource._id === resourceId) {
         setIsModalOpen(false);
         setSelectedResource(null);
