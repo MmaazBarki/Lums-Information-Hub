@@ -14,6 +14,16 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
                 pass: process.env.AUTH_PASS,
             },
         });
+        // const transporter = nodemailer.createTransport({
+        //     host: "smtp.gmail.com",
+        //     port: 465,
+        //     secure: true, // true for 465
+        //     auth: {
+        //       user: process.env.AUTH_EMAIL,
+        //       pass: process.env.AUTH_PASS,
+        //     },
+        //   });
+          
 
         const mailOptions = {
             from: process.env.AUTH_EMAIL,
