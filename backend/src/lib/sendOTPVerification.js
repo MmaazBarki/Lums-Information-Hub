@@ -18,7 +18,7 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res, pendingUser)
 
         const saltRounds = 10;
         const hashedOTP = await bcrypt.hash(otp, saltRounds);
-
+        console.log("OTP:", otp); // keeping this in for debugging, have done email spoofing too many times
         await UserOTPVerification.deleteMany({ email: email }); //remove older OTPs for the same user
 
         const newOTPVerification = new UserOTPVerification({

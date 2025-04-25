@@ -144,30 +144,41 @@ const Sidebar: React.FC<SidebarProps> = ({
       <Box sx={{ mt: 'auto' }}>
         <Divider />
         <Box
-          component={Link}
-          to="/profile"
           sx={{
             p: 2,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 2,
             minHeight: 64,
-            textDecoration: 'none',
-            color: 'inherit',
-            '&:hover': {
-              backgroundColor: 'action.hover',
-            },
-            cursor: 'pointer'
           }}
-          onClick={() => setActiveSection('Profile')}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box
+            component={Link}
+            to="/profile"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              textDecoration: 'none',
+              color: 'inherit',
+              flexGrow: 1,
+              '&:hover': {
+                backgroundColor: 'action.hover',
+              },
+              cursor: 'pointer',
+              borderRadius: 1,
+              px: 1,
+              overflow: 'hidden', // Add overflow hidden to prevent content from expanding
+              maxWidth: isDrawerOpen ? 'calc(100% - 48px)' : 'auto', // Reserve space for the logout button
+            }}
+            onClick={() => setActiveSection('Profile')}
+          >
             <Avatar 
               sx={{ 
                 width: 40, 
                 height: 40,
-                bgcolor: 'primary.main'
+                bgcolor: 'primary.main',
+                flexShrink: 0, // Prevent avatar from shrinking
               }}
             >
               {userInitials}
@@ -177,6 +188,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                 minWidth: 0,
                 opacity: isDrawerOpen ? 1 : 0,
                 transition: (theme) => theme.transitions.create('opacity'),
+                overflow: 'hidden', // Add overflow hidden to clip text
+                width: '100%', // Ensure the text container takes available width
               }}>
                 <Typography noWrap variant="body2" fontWeight="500">
                   {displayName}
@@ -190,15 +203,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           
           <Tooltip title="Logout">
             <IconButton 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleLogout();
-              }}
+              onClick={handleLogout}
+              size="medium"
               sx={{
-                opacity: isDrawerOpen ? 1 : 0,
-                visibility: isDrawerOpen ? 'visible' : 'hidden',
-                transition: (theme) => theme.transitions.create(['opacity', 'visibility']),
+                ml: 1,
               }}
             >
               <LogoutIcon fontSize="small" />
