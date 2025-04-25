@@ -13,16 +13,21 @@ import {
     ListItem,
     Avatar,
     Divider,
-    Select,
     FormControl,
     InputLabel,
-    SelectChangeEvent
+    Select,
+    MenuItem,
+    SelectChangeEvent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbUpOutlinedIcon from '@mui/icons-material/ThumbUpOutlined';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../../../context/AuthContext';
-import { generateGroupedDepartmentOptions } from '../../../constants/departments.tsx';
+import { generateGroupedDepartmentOptions, schools } from '../../../constants/departments';
 
 interface Post {
     _id: string;
@@ -49,6 +54,7 @@ const Posts = () => {
     const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [hasMore, setHasMore] = useState<boolean>(true);
+    const [viewedPost, setViewedPost] = useState<Post | null>(null);
 
     const observer = useRef<IntersectionObserver | null>(null);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -247,6 +253,11 @@ const Posts = () => {
         setSelectedDepartment(event.target.value as string);
     };
 
+    // Create a flat array of all department values for the "All" option
+    const allDepartmentValues = ['All'].concat(
+        schools.flatMap(school => school.departments.map(dept => dept.value))
+    );
+
     return (
         <Box 
             ref={scrollContainerRef} 
@@ -269,6 +280,7 @@ const Posts = () => {
                         label="Department"
                         onChange={handleDepartmentChange}
                     >
+                        <MenuItem value="All">All Departments</MenuItem>
                         {generateGroupedDepartmentOptions()}
                     </Select>
                 </FormControl>
@@ -327,6 +339,7 @@ const Posts = () => {
                     )}
                     {posts.map((post, index) => {
                         const isLastPost = posts.length === index + 1;
+                        const truncated = post.description.length > 100 ? post.description.slice(0, 100) + '...' : post.description;
                         return (
                             <React.Fragment key={post._id}>
                                 <ListItem 
@@ -353,9 +366,12 @@ const Posts = () => {
                                             <Typography variant="h6" component="div" gutterBottom>
                                                 {post.title}
                                             </Typography>
-                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                                                {post.description}
+                                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', mb: 1 }}>
+                                                {truncated}
                                             </Typography>
+                                            <Button size="small" onClick={() => setViewedPost(post)}>
+                                                View
+                                            </Button>
                                         </CardContent>
                                         <CardActions disableSpacing sx={{ justifyContent: 'space-between', px: 2, pb: 1 }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -389,6 +405,21 @@ const Posts = () => {
                     )}
                 </List>
             )}
+            {/* Post View Dialog */}
+            <Dialog open={!!viewedPost} onClose={() => setViewedPost(null)} maxWidth="sm" fullWidth>
+                <DialogTitle>{viewedPost?.title}</DialogTitle>
+                <DialogContent dividers>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        {viewedPost?.name || 'Anonymous'} {viewedPost?.role && `(${viewedPost.role})`} {viewedPost?.department && `- ${viewedPost.department}`}
+                    </Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mt: 2 }}>
+                        {viewedPost?.description}
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setViewedPost(null)} color="primary">Close</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

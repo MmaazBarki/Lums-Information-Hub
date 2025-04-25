@@ -28,7 +28,7 @@ import { useAuth } from '../../../context/AuthContext';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import LockIcon from '@mui/icons-material/Lock';
-import { generateGroupedDepartmentOptions } from '../../../constants/departments.tsx';
+import { generateGroupedDepartmentOptions } from '../../../constants/departments';
 
 interface ProfileProps {}
 

@@ -1,27 +1,28 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface ProfileData {
-  name?: string;
-  department?: string; // Ensure department is part of ProfileData
-  // Add other profile fields like graduationYear, designation, etc.
-}
 
 interface UserInfo {
   id: string;
   email: string;
   role: 'student' | 'alumni' | 'admin';
-  profile_data: ProfileData | null;
+  profile_data: any | null;
 }
 
 interface AuthContextType {
   user: UserInfo | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, role: 'student' | 'alumni' | 'admin', name: string, department?: string) => Promise<void>;
+  signup: (userData: SignupData) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (profileData: Partial<ProfileData>) => Promise<void>;
+  updateUser: (userData: Partial<UserInfo>) => void;
   isAuthenticated: boolean;
+}
+
+interface SignupData {
+  email: string;
+  password: string;
+  role: 'student' | 'alumni' | 'admin';
+  profile_data?: any;
 }
 
 // Create context with default values
@@ -31,7 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: async () => {},
-  updateUser: async () => {},
+  updateUser: () => {},
   isAuthenticated: false
 });
 
@@ -45,15 +46,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  const apiRequest = useCallback(async (url: string, options: RequestInit = {}) => {
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Request failed');
-    }
-    return await response.json();
-  }, []);
 
   // Check if user is already logged in on initial load
   useEffect(() => {
@@ -80,21 +72,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Login function
   const login = async (email: string, password: string) => {
     try {
+      console.log('Attempting login with:', { email });
+      
       const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        credentials: 'include',
+        credentials: 'include', // Important for handling cookies
       });
 
+      console.log('Login response status:', response.status);
+      
+      // Check if the cookie is being set in headers
+      const setCookieHeader = response.headers.get('Set-Cookie');
+      console.log('Set-Cookie header:', setCookieHeader);
+      
+      // Log all response headers for debugging
+      console.log('All response headers:');
+      response.headers.forEach((value, name) => {
+        console.log(`${name}: ${value}`);
+      });
+      
       const data = await response.json();
+      console.log('Login response data:', data);
       
       if (!response.ok) {
+        // Make sure to throw a proper Error object with the message from the backend
         throw new Error(data.message || data.error || 'Login failed');
       }
 
+      // Store user in state and localStorage
       const userInfo = {
         id: data._id,
         email: data.email,
@@ -102,13 +111,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profile_data: data.profile_data,
       };
       
+      console.log('Setting user state with:', userInfo);
       setUser(userInfo);
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       
+      console.log('Navigating to dashboard...');
+      // Navigate to dashboard after successful login
       navigate('/dashboard');
       
     } catch (error) {
       console.error('Login error:', error);
+      // Ensure we're properly throwing the error so it can be caught by the Login component
       if (error instanceof Error) {
         throw error;
       } else {
@@ -118,21 +131,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   // Signup function
-  const signup = async (email: string, password: string, role: 'student' | 'alumni' | 'admin', name: string, department?: string) => {
+  const signup = async (userData: SignupData) => {
     setLoading(true);
     
     try {
-      const profileData: ProfileData = { name };
-      if (department) {
-        profileData.department = department;
-      }
-
       const response = await fetch('http://localhost:5001/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, role, profile_data: profileData }),
+        body: JSON.stringify(userData),
         credentials: 'include',
       });
 
@@ -142,6 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.message || 'Signup failed');
       }
 
+      // Store user in state and localStorage
       const userInfo = {
         id: data._id,
         email: data.email,
@@ -152,6 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userInfo);
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       
+      // Navigate to dashboard after successful signup
       navigate('/dashboard');
       
     } catch (error) {
@@ -176,13 +186,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(data.message || 'Logout failed');
       }
 
+      // Clear user from state and localStorage
       setUser(null);
       localStorage.removeItem('userInfo');
       
+      // Navigate back to login page
       navigate('/login');
       
     } catch (error) {
       console.error('Logout error:', error);
+      // Clear user data anyway on error to prevent UI issues
       setUser(null);
       localStorage.removeItem('userInfo');
       navigate('/login');
@@ -191,31 +204,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Function to update user profile data both in state and localStorage
-  const updateUser = async (profileData: Partial<ProfileData>) => {
-    setLoading(true);
-    try {
-      const data = await apiRequest('http://localhost:5001/api/auth/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(profileData),
-      });
-
-      setUser(prevUser => prevUser ? { ...prevUser, profile_data: { ...prevUser.profile_data, ...data.profile_data } } : null);
-      localStorage.setItem('userInfo', JSON.stringify(user));
-    } catch (error) {
-      console.error('Update user profile error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+  // Function to update user data both in state and localStorage
+  const updateUser = (userData: Partial<UserInfo>) => {
+    if (!user) return; // Don't update if no user is logged in
+    
+    const updatedUser = {
+      ...user,
+      ...userData,
+    };
+    
+    // Update state
+    setUser(updatedUser);
+    
+    // Update localStorage
+    localStorage.setItem('userInfo', JSON.stringify(updatedUser));
   };
 
   return (
     <AuthContext.Provider 
       value={{
         user,
-        loading,
+        loading,//check this for login errors
         login,
         signup,
         logout,
