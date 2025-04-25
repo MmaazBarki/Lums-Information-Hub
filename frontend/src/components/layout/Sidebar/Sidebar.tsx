@@ -18,6 +18,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import SchoolIcon from '@mui/icons-material/School';
 import LogoutIcon from '@mui/icons-material/Logout';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useAuth } from '../../../context/AuthContext';
 
 interface SidebarProps {
@@ -46,12 +47,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   const displayName = user?.profile_data?.name || user?.email || 'User';
   const role = user?.role || 'User';
 
-  const menuItems = [
+  // Define menu items based on user role
+  let menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Messages', icon: <MailIcon />, path: '/messages' },
     { text: 'Posts', icon: <PostAddIcon />, path: '/posts' },
     { text: 'Courses', icon: <SchoolIcon />, path: '/courses' }
   ];
+
+  // Add admin section for admin users only
+  if (user?.role === 'admin') {
+    menuItems.push({ 
+      text: 'Admin', 
+      icon: <AdminPanelSettingsIcon />, 
+      path: '/admin' 
+    });
+  }
 
   const handleMenuItemClick = (text: string) => {
     setActiveSection(text);
