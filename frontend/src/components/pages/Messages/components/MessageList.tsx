@@ -9,11 +9,14 @@ import {
 // Import types
 import { Message } from '../types';
 
+// Update props interface to include currentUserId
 interface MessageListProps {
   messages: Message[];
+  currentUserId: string; 
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+// Destructure currentUserId from props
+const MessageList: React.FC<MessageListProps> = ({ messages, currentUserId }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Scroll to bottom of messages when conversation changes or new message is added
@@ -28,22 +31,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
     const groups: { [key: string]: Message[] } = {};
     
     messages.forEach(message => {
-      const date = message.timestamp.includes(':') 
-        ? 'Today' 
-        : message.timestamp;
+      // Use createdAt for date grouping, format it as needed
+      const dateKey = new Date(message.createdAt).toLocaleDateString(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
       
-      if (!groups[date]) {
-        groups[date] = [];
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
       }
       
-      groups[date].push(message);
+      groups[dateKey].push(message);
     });
     
     return groups;
   };
 
   const messageGroups = groupMessagesByDate();
-  
+
   return (
     <Box 
       sx={{ 
@@ -98,48 +102,67 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
             </Typography>
           </Box>
           
-          {dateMessages.map((message) => (
-            <Box
-              key={message.id}
-              sx={{
-                display: 'flex',
-                justifyContent: message.sender === 'self' ? 'flex-end' : 'flex-start',
-                mb: 1.5,
-              }}
-            >
-              <Paper
-                elevation={0}
+          {dateMessages.map((message) => {
+            // Determine if the message sender is the current user
+            const isSelf = message.senderID === currentUserId;
+            
+            return (
+              <Box
+                key={message._id} // Use _id as key
                 sx={{
-                  p: 1.5,
-                  maxWidth: '70%',
-                  borderRadius: 2,
-                  backgroundColor: message.sender === 'self' 
-                    ? (theme) => theme.palette.primary.main
-                    : (theme) => theme.palette.background.paper,
-                  color: message.sender === 'self' 
-                    ? 'white' 
-                    : (theme) => theme.palette.text.primary,
-                  border: 1,
-                  borderColor: message.sender === 'self'
-                    ? (theme) => theme.palette.primary.main
-                    : 'divider',
-                  boxShadow: message.sender === 'self' 
-                    ? '0 1px 2px rgba(0,0,0,0.1)' 
-                    : '0 1px 2px rgba(0,0,0,0.05)'
+                  display: 'flex',
+                  justifyContent: isSelf ? 'flex-end' : 'flex-start',
+                  mb: 1.5,
                 }}
               >
-                <Typography variant="body1" component="div">{message.text}</Typography>
-                <Typography 
-                  variant="caption" 
-                  component="div"
-                  color={message.sender === 'self' ? 'rgba(255,255,255,0.7)' : 'text.secondary'}
-                  sx={{ display: 'block', mt: 0.5, textAlign: 'right' }}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.5,
+                    maxWidth: '70%',
+                    borderRadius: 2,
+                    backgroundColor: isSelf 
+                      ? (theme) => theme.palette.primary.main
+                      : (theme) => theme.palette.background.paper,
+                    color: isSelf 
+                      ? 'white' 
+                      : (theme) => theme.palette.text.primary,
+                    border: 1,
+                    borderColor: isSelf
+                      ? (theme) => theme.palette.primary.main
+                      : 'divider',
+                    boxShadow: isSelf 
+                      ? '0 1px 2px rgba(0,0,0,0.1)' 
+                      : '0 1px 2px rgba(0,0,0,0.05)'
+                  }}
                 >
-                  {message.timestamp.includes(':') ? message.timestamp : ''}
-                </Typography>
-              </Paper>
-            </Box>
-          ))}
+                  {/* Display image if present */}
+                  {message.image && (
+                    <Box sx={{ mb: message.text ? 1 : 0 }}>
+                      <img 
+                        src={message.image} 
+                        alt="Sent image" 
+                        style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} 
+                      />
+                    </Box>
+                  )}
+                  {/* Display text if present */}
+                  {message.text && (
+                    <Typography variant="body1" component="div">{message.text}</Typography>
+                  )}
+                  <Typography 
+                    variant="caption" 
+                    component="div"
+                    color={isSelf ? 'rgba(255,255,255,0.7)' : 'text.secondary'}
+                    sx={{ display: 'block', mt: 0.5, textAlign: 'right' }}
+                  >
+                    {/* Format createdAt timestamp */}
+                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </Typography>
+                </Paper>
+              </Box>
+            );
+          })}
         </Box>
       ))}
       <div ref={messagesEndRef} />
