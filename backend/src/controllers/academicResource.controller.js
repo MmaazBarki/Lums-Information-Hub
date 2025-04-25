@@ -42,14 +42,10 @@ export const uploadResource = async (req, res) => {
     if (!course_code || !topic || !description) {
         return res.status(400).json({ message: "Course code, topic, and description are required." });
     }
-    console.log("Uploader ID:", uploader_id);
-    console.log("Uploader Name:", uploader_name);
-    console.log("Uploaded File Info:", req.file); 
 
     try {
   
         const cloudinaryResult = await uploadToCloudinary(req.file.buffer, req.file.originalname);
-        console.log("Cloudinary Upload Result:", cloudinaryResult);
 
         if (!cloudinaryResult || !cloudinaryResult.secure_url) {
             throw new Error("Cloudinary upload failed");

@@ -151,7 +151,6 @@ const Signup: React.FC = () => {
       if (!response.ok) {
         throw new Error(data.message || 'Signup failed');
       }
-      console.log("pending user data in response", data.data.pendingUser);
 
       setUserData(data.data.pendingUser);
       setSuccessMessage('An OTP has been sent to your email. Please check your inbox.');

@@ -51,7 +51,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('Connecting to socket with user ID:', user.id);
       
       const newSocket = io('http://localhost:5001', {
         query: { userId: user.id },
@@ -79,7 +78,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (!user) return;
 
     try {
-      console.log('Fetching notifications...');
       const response = await fetch('http://localhost:5001/api/notifications', {
         method: 'GET',
         headers: {
@@ -94,7 +92,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         throw new Error(data.message || 'Failed to fetch notifications');
       }
 
-      console.log('Notifications fetched:', data);
       setNotifications(data.notifications || []);
       setUnreadCount(data.unreadCount || 0);
     } catch (error) {
@@ -106,7 +103,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (!socket) return;
 
     const handleNewNotification = (notification: Notification) => {
-      console.log('New notification received via socket:', notification);
       
       setNotifications(prev => {
         const exists = prev.some(n => n._id === notification._id);
@@ -118,7 +114,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
 
     const handleNotificationRead = (notificationId: string) => {
-      console.log('Notification marked as read via socket:', notificationId);
       
       setNotifications(prev => 
         prev.map(n => 
@@ -136,7 +131,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     };
 
     const handleAllNotificationsRead = () => {
-      console.log('All notifications marked as read via socket');
       
       setNotifications(prev => 
         prev.map(n => ({ ...n, isRead: true }))
@@ -169,7 +163,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (!user) return;
 
     try {
-      console.log(`Making API call to mark notification ${notificationId} as read`);
       
       const response = await fetch(`http://localhost:5001/api/notifications/${notificationId}/read`, {
         method: 'PATCH',
@@ -201,7 +194,6 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
       
-      console.log(`Notification ${notificationId} marked as read successfully`);
     } catch (error) {
       console.error('Error marking notification as read:', error);
       throw error;
@@ -212,12 +204,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     if (!user) return;
     
     if (unreadCount === 0) {
-      console.log('No unread notifications to mark as read');
       return;
     }
 
     try {
-      console.log('Making API call to mark all notifications as read');
       
       const response = await fetch('http://localhost:5001/api/notifications/read-all', {
         method: 'PATCH',

@@ -7,7 +7,6 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res, pendingUser)
 
         const otp_timeout = 3600000; //set to an hour for now but may be changed
         const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
-        // console.log("Generated OTP:", otp); // keeping this in for debugging, have done email spoofing too many times
 
         const mailOptions = {
             from: process.env.AUTH_EMAIL,
@@ -18,7 +17,6 @@ export const sendOTPVerificationEmail = async ({ _id, email }, res, pendingUser)
 
         const saltRounds = 10;
         const hashedOTP = await bcrypt.hash(otp, saltRounds);
-        console.log("OTP:", otp); // keeping this in for debugging, have done email spoofing too many times
         await UserOTPVerification.deleteMany({ email: email });
 
         const newOTPVerification = new UserOTPVerification({

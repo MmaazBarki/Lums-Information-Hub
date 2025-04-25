@@ -15,7 +15,6 @@ export const sendPasswordResetOTP = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
-    console.log("Generated password reset OTP:", otp); 
     
     const hashedOtp = await bcrypt.hash(otp, 10);
 
@@ -65,7 +64,6 @@ export const verifyPasswordResetOTP = async (req, res) => {
     }
 
     const otpRecord = await UserOTPVerification.findOne({ email }).sort({ createdAt: -1 });
-    console.log("Checking OTP record for:", email);
     
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid or expired OTP. Please request a new one." });

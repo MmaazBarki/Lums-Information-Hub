@@ -88,10 +88,8 @@ export const useMessages = () => {
       });
       socketRef.current = socket;
 
-      console.log('Socket connected', socket.id);
 
       socket.on('newMessage', (newMessage: Message) => {
-        console.log('Received new message via socket:', newMessage);
         const conversationPartnerId = newMessage.senderID === currentUser.id ? newMessage.receiverID : newMessage.senderID;
         setMessages(prev => ({
           ...prev,
@@ -104,16 +102,13 @@ export const useMessages = () => {
       });
 
       socket.on('getOnlineUsers', (users: string[]) => {
-        console.log('Online users:', users);
         setOnlineUsers(users);
       });
 
       socket.on('disconnect', () => {
-        console.log('Socket disconnected');
       });
 
       return () => {
-        console.log('Disconnecting socket...');
         socket.disconnect();
         socketRef.current = null;
       };

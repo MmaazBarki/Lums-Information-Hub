@@ -72,7 +72,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login with:', { email });
       
       const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
@@ -83,18 +82,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         credentials: 'include', 
       });
 
-      console.log('Login response status:', response.status);
       
-      const setCookieHeader = response.headers.get('Set-Cookie');
-      console.log('Set-Cookie header:', setCookieHeader);
-      
-      console.log('All response headers:');
-      response.headers.forEach((value, name) => {
-        console.log(`${name}: ${value}`);
-      });
       
       const data = await response.json();
-      console.log('Login response data:', data);
       
       if (!response.ok) {
         throw new Error(data.message || data.error || 'Login failed');
@@ -107,11 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profile_data: data.profile_data,
       };
       
-      console.log('Setting user state with:', userInfo);
       setUser(userInfo);
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       
-      console.log('Navigating to dashboard...');
       navigate('/dashboard');
       
     } catch (error) {

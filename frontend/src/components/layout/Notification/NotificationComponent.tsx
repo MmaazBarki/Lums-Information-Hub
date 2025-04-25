@@ -42,7 +42,6 @@ const NotificationComponent: React.FC = () => {
       setMarkingId(notification._id);
       
       await markAsRead(notification._id);
-      console.log(`Notification ${notification._id} marked as read`);
       
       navigateToContent(notification);
     } catch (error) {
@@ -83,7 +82,6 @@ const NotificationComponent: React.FC = () => {
     try {
       setLoading(true);
       await markAllAsRead();
-      console.log('All notifications marked as read');
       await fetchNotifications();
     } catch (error) {
       console.error('Error marking all as read:', error);

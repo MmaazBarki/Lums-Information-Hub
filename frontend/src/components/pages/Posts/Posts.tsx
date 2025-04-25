@@ -136,31 +136,25 @@ const Posts = () => {
             const data = await response.json();
 
             if (data && Array.isArray(data.posts)) {
-                console.log('Fetched posts data:', data.posts);
                 
                 const fetchedPosts: Post[] = data.posts;
                 const newlyFetchedLikedIds = new Set<string>();
                 
                 fetchedPosts.forEach((post: Post) => {
-                    console.log(`Post ${post._id} isLikedByCurrentUser:`, post.isLikedByCurrentUser);
                     if (post.isLikedByCurrentUser) {
                         newlyFetchedLikedIds.add(post._id);
                     }
                 });
                 
-                console.log('Newly fetched liked IDs:', Array.from(newlyFetchedLikedIds));
-
                 setPosts(prevPosts => loadMore ? [...prevPosts, ...fetchedPosts] : fetchedPosts);
 
                 if (loadMore) {
                     setLikedPosts(prevLikedPosts => {
                         const updatedLikedPosts = new Set(prevLikedPosts);
                         newlyFetchedLikedIds.forEach(id => updatedLikedPosts.add(id));
-                        console.log('Updated liked posts with more:', Array.from(updatedLikedPosts));
                         return updatedLikedPosts;
                     });
                 } else {
-                    console.log('Setting liked posts to:', Array.from(newlyFetchedLikedIds));
                     setLikedPosts(newlyFetchedLikedIds);
                 }
 

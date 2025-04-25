@@ -164,7 +164,6 @@ export const login = async (req, res) => {
         })
 
     }catch(error){
-        console.log("Error in login Controller:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
@@ -175,7 +174,6 @@ export const logout = (req, res) => {
         res.status(200).json({ message: "Logged out Successfully" });
 
     }catch(error){
-        console.log("Error in logout Controller:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
@@ -243,7 +241,6 @@ export const updateProfile = async (req, res) => {
 
         
     } catch (error) {
-        console.log("Error when updating profile: ", error);
         res.status(500).json({message: "Internal server error" });
     }
 };
@@ -286,7 +283,6 @@ export const updatePassword = async (req, res) => {
         res.status(200).json({ message: "Password updated successfully" });
         
     } catch (error) {
-        console.log("Error in updatePassword controller", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 
@@ -297,7 +293,6 @@ export const checkAuth = (req, res) => {
         res.status(200).json(req.user);
         
     } catch (error) {
-        console.log("Error in checkAuth controller", error.message);
         res.status(500).json( {message: "Internal Server Error"});
     }
 };

@@ -43,7 +43,6 @@ const Login: React.FC = () => {
     try {
       await login(email, password);
     } catch (err) {
-      console.log('Login error caught:', err);
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
       setLoading(false);
     }
