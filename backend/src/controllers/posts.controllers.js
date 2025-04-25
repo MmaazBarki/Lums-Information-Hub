@@ -67,10 +67,10 @@ export const createPost = async (req, res) => {
     try {
         const newPost = new Post({
             title,
-            name:user.profile_data.name,
-            email:user.email,
+            name: user.profile_data?.name || "ADMIN",
+            email: user.email,
             description,
-            department: user.profile_data.department,
+            department: user.profile_data?.department || "ADMIN",
             role: user.role,
             category: postCategory,
             number_of_likes: 0,
