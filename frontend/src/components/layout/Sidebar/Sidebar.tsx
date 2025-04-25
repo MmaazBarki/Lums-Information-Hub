@@ -39,7 +39,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const { logout, user } = useAuth();
   const navigate = useNavigate();
 
-  // Get user information from auth context
   const userInitials = user?.profile_data?.name
     ? `${user.profile_data.name.split(' ')[0][0]}${user.profile_data.name.split(' ')[1]?.[0] || ''}`
     : user?.email?.[0]?.toUpperCase() || 'U';
@@ -47,7 +46,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const displayName = user?.profile_data?.name || user?.email || 'User';
   const role = user?.role || 'User';
 
-  // Define menu items based on user role
   let menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Messages', icon: <MailIcon />, path: '/messages' },
@@ -55,7 +53,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { text: 'Courses', icon: <SchoolIcon />, path: '/courses' }
   ];
 
-  // Add admin section for admin users only
   if (user?.role === 'admin') {
     menuItems.push({ 
       text: 'Admin', 

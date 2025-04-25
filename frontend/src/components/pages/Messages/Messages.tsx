@@ -1,23 +1,20 @@
 import React from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 
-// Import custom components
 import ConversationList from './components/ConversationList';
 import ConversationHeader from './components/ConversationHeader';
 import MessageList from './components/MessageList';
 import MessageInput from './components/MessageInput';
 import EmptyState from './components/EmptyState';
 
-// Import custom hooks
 import useMessages from './hooks/useMessages';
 
 const Messages: React.FC = () => {
   const {
-    users, // Changed from conversations
-    currentConversationUser, // Changed from currentConversation
+    users, 
+    currentConversationUser, 
     currentMessages,
     selectedUserId,
-    // searchQuery, // Removed for now
     // setSearchQuery, // Removed for now
     handleSelectUser,
     handleSendMessage,
@@ -25,7 +22,7 @@ const Messages: React.FC = () => {
     loading,
     error,
     currentUserId,
-    onlineUsers, // Added onlineUsers
+    onlineUsers,
   } = useMessages();
 
   if (loading && !users.length) {
@@ -37,24 +34,23 @@ const Messages: React.FC = () => {
   }
 
   if (!currentUserId) {
-    // Should ideally not happen if AuthProvider handles loading state correctly
     return <Alert severity="warning">Authenticating...</Alert>;
   }
 
   return (
     <Box sx={{ 
       display: 'flex', 
-      height: 'calc(100vh - 164px)', // Adjust height based on your Layout
+      height: 'calc(100vh - 164px)', 
       overflow: 'hidden',
       backgroundColor: (theme) => theme.palette.background.paper,
     }}>
-      {/* Conversations List (now User List) */}
+      {/* Conversations List (User List) */}
       <ConversationList 
-        conversations={users} // Pass users array
+        conversations={users} 
         selectedConversationId={selectedUserId}
         onSelectConversation={handleSelectUser}
-        onlineUsers={onlineUsers} // Pass online users
-        currentUserId={currentUserId} // Pass current user ID to filter self
+        onlineUsers={onlineUsers} 
+        currentUserId={currentUserId}
       />
       
       {/* Chat Area */}
@@ -66,14 +62,12 @@ const Messages: React.FC = () => {
           height: '100%',
           overflow: 'hidden'
         }}>
-          {/* Pass the user object to the header */}
           <ConversationHeader conversation={currentConversationUser ?? null} /> 
           <MessageList messages={currentMessages} currentUserId={currentUserId} />
           <MessageInput onSendMessage={handleSendMessage} />
         </Box>
       ) : (
         <Box sx={{ flexGrow: 1 }}>
-          {/* Removed onNewMessage from EmptyState */}
           <EmptyState message="Select a user to start chatting" /> 
         </Box>
       )}

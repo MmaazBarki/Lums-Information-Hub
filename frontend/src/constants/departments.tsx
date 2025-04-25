@@ -17,7 +17,6 @@ const schoolsData: School[] = [
     departments: [
       { value: 'ACCF', label: 'Accounting and Finance' },
       { value: 'MGMT', label: 'Management Science' },
-      // Add more SDSB majors if needed
     ],
   },
   {
@@ -28,7 +27,6 @@ const schoolsData: School[] = [
       { value: 'MATH', label: 'Mathematics' },
       { value: 'PHY', label: 'Physics' },
       { value: 'CHEMBIO', label: 'Chemistry and Biology' },
-      // Add more SSE majors if needed
     ],
   },
   {
@@ -39,14 +37,12 @@ const schoolsData: School[] = [
       { value: 'HIST', label: 'History' },
       { value: 'ANTHSOC', label: 'Anthropology and Sociology' },
       { value: 'ENG', label: 'English' },
-      // Add more HSS majors if needed
     ],
   },
   {
     name: 'Shaikh Ahmad Hassan School of Law (SAHSOL)',
     departments: [
       { value: 'LAW', label: 'Law' },
-      // Add more Law majors if needed
     ],
   },
   {
@@ -54,19 +50,13 @@ const schoolsData: School[] = [
     departments: [
         { value: 'OTHER', label: 'Other/Not Specified' },
     ]
-  } // Added missing comma here
+  } 
 ];
 
-/**
- * Generates grouped options for the department Select component.
- * Returns an array of React nodes (ListSubheader and MenuItem).
- */
 export const generateGroupedDepartmentOptions = (): React.ReactNode[] => { // Renamed function for clarity
   const options: React.ReactNode[] = [];
   schoolsData.forEach((school) => {
-    // Add the school name as a subheader
     options.push(<ListSubheader key={school.name}>{school.name}</ListSubheader>);
-    // Add the departments under that school
     school.departments.forEach((dept) => {
       options.push(
         <MenuItem key={dept.value} value={dept.value}>
@@ -78,5 +68,4 @@ export const generateGroupedDepartmentOptions = (): React.ReactNode[] => { // Re
   return options;
 };
 
-// Optional: Export the raw data if needed elsewhere
 export const schools = schoolsData;
