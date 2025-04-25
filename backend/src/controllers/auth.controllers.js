@@ -2,7 +2,7 @@ import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js"
 import  bcrypt from "bcryptjs"
-import UserOTPVerification from "../models/userOtpVerification.models.js";
+import UserOTPVerification from "../models/userOTPVerification.models.js"; // Corrected casing
 // import router from "../routes/auth.routes.js";
 
 export const signup = async (req, res) => {

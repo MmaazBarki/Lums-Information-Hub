@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
-import UserOTPVerification from "../models/userOtpVerification.models.js";
+import UserOTPVerification from "../models/userOTPVerification.models.js";
 
 export const sendOTPVerificationEmail = async ({ _id, email }, res) => {
     try {

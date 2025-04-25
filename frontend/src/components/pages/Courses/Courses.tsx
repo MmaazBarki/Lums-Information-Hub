@@ -534,27 +534,34 @@ const Courses: React.FC = () => {
                       <Grid container spacing={2}>
                         {courseResources.map((resource) => (
                           <Grid item xs={12} sm={6} md={4} key={resource._id}>
-                            <Card elevation={2}>
+                            {/* Add relative positioning to the Card */}
+                            <Card elevation={2} sx={{ position: 'relative' }}>
+                              {/* Move IconButton outside CardActionArea */}
+                              <IconButton
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Keep stopPropagation
+                                  toggleBookmark(resource._id);
+                                }}
+                                sx={{ 
+                                  position: 'absolute', 
+                                  top: 8, 
+                                  right: 8, 
+                                  zIndex: 1 // Ensure button is above CardActionArea ripple
+                                }}
+                              >
+                                {bookmarkedResources.includes(resource._id) ? (
+                                  <BookmarkAddedIcon color="primary" />
+                                ) : (
+                                  <BookmarkIcon />
+                                )}
+                              </IconButton>
                               <CardActionArea onClick={() => handleOpenResourceModal(resource)}>
                                 <CardContent>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
-                                      {resource.topic}
-                                    </Typography>
-                                    <IconButton 
-                                      size="small" 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleBookmark(resource._id);
-                                      }}
-                                    >
-                                      {bookmarkedResources.includes(resource._id) ? (
-                                        <BookmarkAddedIcon color="primary" />
-                                      ) : (
-                                        <BookmarkIcon />
-                                      )}
-                                    </IconButton>
-                                  </Box>
+                                  {/* Remove the Box containing the IconButton */}
+                                  <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 /* Add padding to prevent overlap */ }}>
+                                    {resource.topic}
+                                  </Typography>
                                   
                                   {/* Display Average Rating */}
                                   <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
@@ -633,23 +640,31 @@ const Courses: React.FC = () => {
                           .filter(r => bookmarkedResources.includes(r._id))
                           .map((resource) => (
                             <Grid item xs={12} sm={6} md={4} key={resource._id}>
-                              <Card elevation={2}>
+                              {/* Add relative positioning to the Card */}
+                              <Card elevation={2} sx={{ position: 'relative' }}>
+                                {/* Move IconButton outside CardActionArea */}
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Keep stopPropagation
+                                    toggleBookmark(resource._id);
+                                  }}
+                                  sx={{ 
+                                    position: 'absolute', 
+                                    top: 8, 
+                                    right: 8, 
+                                    zIndex: 1 // Ensure button is above CardActionArea ripple
+                                  }}
+                                >
+                                  {/* Always show filled icon in bookmarked tab */}
+                                  <BookmarkAddedIcon color="primary" /> 
+                                </IconButton>
                                 <CardActionArea onClick={() => handleOpenResourceModal(resource)}>
                                   <CardContent>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                      <Typography variant="h6" noWrap sx={{ maxWidth: '80%' }}>
-                                        {resource.topic}
-                                      </Typography>
-                                      <IconButton 
-                                        size="small" 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleBookmark(resource._id);
-                                        }}
-                                      >
-                                        <BookmarkAddedIcon color="primary" />
-                                      </IconButton>
-                                    </Box>
+                                    {/* Remove the Box containing the IconButton */}
+                                    <Typography variant="h6" noWrap sx={{ maxWidth: '80%', pr: 4 /* Add padding to prevent overlap */ }}>
+                                      {resource.topic}
+                                    </Typography>
                                     
                                     {/* Display Average Rating */}
                                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>

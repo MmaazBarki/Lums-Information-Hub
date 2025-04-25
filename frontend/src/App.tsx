@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { 
   Box,
@@ -77,69 +77,54 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Main App component
 const App: React.FC = () => {
-  const [mode, setMode] = useState<PaletteMode>('light');
+  // Initialize state directly from localStorage or default to 'light'
+  const [mode, setMode] = useState<PaletteMode>(() => {
+    const savedMode = localStorage.getItem('theme-mode');
+    return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+  });
 
   // Create theme based on current mode
   const theme = useMemo(() => getTheme(mode), [mode]);
   
   // Toggle theme mode (light/dark)
   const toggleColorMode = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    setMode((prevMode) => {
+      const newMode = prevMode === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme-mode', newMode); // Save immediately on toggle
+      return newMode;
+    });
   };
 
-  // Save/restore theme preference
-  useEffect(() => {
-    const savedMode = localStorage.getItem('theme-mode');
-    if (savedMode === 'dark' || savedMode === 'light') {
-      setMode(savedMode);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('theme-mode', mode);
-  }, [mode]);
-
   return (
-    <BrowserRouter>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AuthProvider>
-          <Box sx={{ 
-            width: '100%', 
-            height: '100vh',
-            padding: 0,
-            margin: 0,
-            overflow: 'hidden'
-          }}>
-            <Routes>
-              {/* Redirect root to login */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
-              
-              {/* Auth routes - public access only */}
-              <Route path="/login" element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } />
-              <Route path="/signup" element={
-                <PublicRoute>
-                  <Signup />
-                </PublicRoute>
-              } />
-              
-              {/* All protected routes wrapped in a single Layout */}
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <Layout toggleColorMode={toggleColorMode} />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
-          </Box>
-        </AuthProvider>
-      </ThemeProvider>
+    <BrowserRouter> {/* Move BrowserRouter to wrap AuthProvider */}
+      <AuthProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {/* Routes are now descendants of BrowserRouter and AuthProvider */}
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+
+            {/* Protected Routes */}
+            <Route 
+              path="/*" 
+              element={
+                <ProtectedRoute>
+                  <Layout toggleColorMode={toggleColorMode}> 
+                    {/* Nested routes are rendered within Layout's Outlet */}
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            {/* Define specific protected routes if needed, or handle within Layout */}
+            {/* Example: <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> */}
+            
+            {/* Fallback route - redirects authenticated users to dashboard, others to login */}
+            <Route path="*" element={<Navigate to="/login" replace />} /> 
+          </Routes>
+        </ThemeProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 };

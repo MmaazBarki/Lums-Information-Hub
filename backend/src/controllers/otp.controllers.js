@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.models.js";
-import UserOTPVerification from "../models/userOtpVerification.models.js";
+import UserOTPVerification from "../models/userOTPVerification.models.js";
 import transporter from "../lib/email.js";
 
 export const sendPasswordResetOTP = async (req, res) => {
