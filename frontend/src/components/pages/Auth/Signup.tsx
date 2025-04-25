@@ -13,15 +13,18 @@ import {
   InputLabel,
   CircularProgress,
   FormHelperText,
+  SelectChangeEvent,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import ProductShowcase from '../../../assets/images/ProductShowcase.png';
 import { useAuth } from '../../../context/AuthContext';
+import { generateGroupedDepartmentOptions } from '../../../constants/departments'; // Import the department options generator
+
 
 interface ProfileData {
   name?: string;
   department?: string;
-  graduationYear?: string;
+  batch?: string;
   rollNumber?: string;
 }
 
@@ -30,17 +33,25 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'student' | 'alumni' | 'admin'>('student');
-  const [profileData, setProfileData] = useState<ProfileData>({});
+  const [profileData, setProfileData] = useState<ProfileData>({ department: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { signup } = useAuth();
 
-  // Handle profile data change
-  const handleProfileDataChange = (field: keyof ProfileData, value: string) => {
+  // Handle profile data change for TextField
+  const handleProfileTextFieldChange = (field: keyof ProfileData, value: string) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  // Handle department change for Select
+  const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
+    setProfileData(prev => ({
+      ...prev,
+      department: event.target.value as string
     }));
   };
 
@@ -79,7 +90,7 @@ const Signup: React.FC = () => {
     // Profile data validation for students and alumni
     if (role !== 'admin') {
       if (!profileData.name || !profileData.department) {
-        setError('Profile data is required for students and alumni');
+        setError('Name and Department are required for students and alumni');
         setLoading(false);
         return;
       }
@@ -90,7 +101,7 @@ const Signup: React.FC = () => {
         return;
       }
       
-      if (role === 'alumni' && !profileData.graduationYear) {
+      if (role === 'alumni' && !profileData.batch) {
         setError('Graduation year is required for alumni');
         setLoading(false);
         return;
@@ -123,23 +134,28 @@ const Signup: React.FC = () => {
         <TextField
           label="Full Name"
           value={profileData.name || ''}
-          onChange={(e) => handleProfileDataChange('name', e.target.value)}
+          onChange={(e) => handleProfileTextFieldChange('name', e.target.value)}
           fullWidth
           required
         />
-        <TextField
-          label="Department"
-          value={profileData.department || ''}
-          onChange={(e) => handleProfileDataChange('department', e.target.value)}
-          fullWidth
-          required
-        />
+        {/* Department Dropdown with properly grouped options */}
+        <FormControl fullWidth required>
+          <InputLabel id="department-select-label">Department</InputLabel>
+          <Select
+            labelId="department-select-label"
+            value={profileData.department || ''}
+            label="Department"
+            onChange={handleDepartmentChange}
+          >
+            {generateGroupedDepartmentOptions()}
+          </Select>
+        </FormControl>
         
         {role === 'student' && (
           <TextField
             label="Roll Number"
             value={profileData.rollNumber || ''}
-            onChange={(e) => handleProfileDataChange('rollNumber', e.target.value)}
+            onChange={(e) => handleProfileTextFieldChange('rollNumber', e.target.value)}
             fullWidth
             required
           />
@@ -148,8 +164,8 @@ const Signup: React.FC = () => {
         {role === 'alumni' && (
           <TextField
             label="Graduation Year"
-            value={profileData.graduationYear || ''}
-            onChange={(e) => handleProfileDataChange('graduationYear', e.target.value)}
+            value={profileData.batch || ''}
+            onChange={(e) => handleProfileTextFieldChange('batch', e.target.value)}
             fullWidth
             required
           />
@@ -168,54 +184,43 @@ const Signup: React.FC = () => {
         alignItems: 'center',
         backgroundColor: (theme) => theme.palette.background.default,
         overflow: 'hidden', // Prevent body overflow
-        p: { xs: 2, md: 0 }, // Add padding on small screens
+        py: { xs: 4, sm: 0 },
       }}
     >
       <Paper 
-        elevation={3} 
+        elevation={6} 
         sx={{ 
-          display: 'flex',
-          maxHeight: { xs: '90vh', md: '80vh' }, // Max height with viewport units
-          width: { xs: '100%', md: '900px' },
-          borderRadius: 2,
+          width: '95%',
+          maxWidth: '1200px',
+          height: { xs: 'auto', md: '80vh' },
           overflow: 'hidden',
-          position: 'relative',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          borderRadius: 2,
         }}
       >
         {/* Left side - Image */}
-        <Box
-          sx={{
-            width: '50%',
-            display: { xs: 'none', md: 'flex' }, // Hide on small screens
-            alignItems: 'center',
-            justifyContent: 'center',
+        <Box 
+          sx={{ 
+            width: { xs: '100%', md: '50%' },
+            display: { xs: 'none', md: 'block' },
+            bgcolor: 'primary.main',
             position: 'relative',
-            bgcolor: 'primary.light',
+            minHeight: { xs: '200px', md: 'unset' }, // min height on small screens
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
+          <img 
+            src={ProductShowcase} 
+            alt="Product Showcase" 
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
             }}
-          >
-            <img 
-              src={ProductShowcase} 
-              alt="Product Showcase" 
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-              }}
-            />
-          </Box>
+          />
         </Box>
 
         {/* Right side - Form */}
@@ -299,7 +304,7 @@ const Signup: React.FC = () => {
                 <TextField
                   label="Confirm Password"
                   type="password"
-                  value={confirmPassword}
+                  value={confirmPassword || ''}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   fullWidth
                   required

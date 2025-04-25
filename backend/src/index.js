@@ -1,8 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables FIRST
+
 import express from "express";
 import authRoutes from "./routes/auth.routes.js";
 import messageRoutes from "./routes/message.routes.js"; // Faraz
 import { app, server } from "./lib/socket.js"; // Faraz: Socket.io server
-import dotenv from "dotenv";
 import { connect } from "mongoose";
 import { connectDB } from "./lib/db.js";
 import cookieParser from "cookie-parser";
@@ -10,11 +12,13 @@ import cors from "cors";
 import academicResourceRoutes from "./routes/academicResource.routes.js";
 import courseRoutes from "./routes/courses.routes.js";
 import postRoutes from "./routes/posts.routes.js";
+import { configureCloudinary } from "./lib/cloudinary.js"; // Import the configuration function
 import otpRoutes from "./routes/otp.routes.js";
 import resetPasswordRoutes from "./routes/resetPassword.routes.js";
 
 dotenv.config();
-
+// Configure Cloudinary after dotenv has loaded
+configureCloudinary();
 
 const PORT = process.env.PORT
 app.use(cors({

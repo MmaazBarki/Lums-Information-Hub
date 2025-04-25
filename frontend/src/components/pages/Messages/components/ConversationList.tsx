@@ -16,7 +16,7 @@ import {
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
-import { ConversationListProps } from '../types';
+import { ConversationListProps } from '../types'; 
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
   cursor: 'pointer',
@@ -29,16 +29,22 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
 }));
 
 const ConversationList: React.FC<ConversationListProps> = ({ 
-  conversations, 
+  conversations, // This is actually User[]
   selectedConversationId, 
-  onSelectConversation 
+  onSelectConversation, 
+  onlineUsers = [], // Default to empty array
+  currentUserId
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredConversations = conversations.filter(conversation => 
-    conversation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    conversation.lastMessage.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter out the current user and apply search term
+  const filteredUsers = conversations
+    .filter(user => user._id !== currentUserId) // Don't show self in the list
+    .filter(user => 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      // Removed filtering by lastMessage
+    );
 
   return (
     <Box 
@@ -88,53 +94,63 @@ const ConversationList: React.FC<ConversationListProps> = ({
         />
       </Box>
       
-      {/* Conversations List */}
+      {/* Conversations List (now User List) */}
       <Box sx={{ overflow: 'auto', flexGrow: 1 }}>
         <List disablePadding>
-          {filteredConversations.map((conversation) => (
-            <React.Fragment key={conversation.id}>
-              <StyledListItem 
-                sx={{ 
-                  backgroundColor: selectedConversationId === conversation.id 
-                    ? (theme) => theme.palette.action.selected 
-                    : 'transparent'
-                }}
-                onClick={() => onSelectConversation(conversation.id)}
-              >
-                <ListItemAvatar>
-                  <Avatar alt={conversation.name}>
-                    {conversation.name.charAt(0)}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={conversation.name}
-                  secondary={
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
-                      noWrap 
-                      sx={{ maxWidth: '150px' }}
+          {/* Map over filteredUsers */} 
+          {filteredUsers.map((user) => {
+            const isOnline = onlineUsers.includes(user._id);
+            return (
+              <React.Fragment key={user._id}> {/* Use user._id as key */} 
+                <StyledListItem 
+                  sx={{ 
+                    backgroundColor: selectedConversationId === user._id // Use user._id for selection check
+                      ? (theme) => theme.palette.action.selected 
+                      : 'transparent'
+                  }}
+                  onClick={() => onSelectConversation(user._id)} // Pass user._id to handler
+                >
+                  <ListItemAvatar>
+                    {/* Add Badge for online status */}
+                    <Badge
+                      overlap="circular"
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      variant="dot"
+                      sx={{
+                        '& .MuiBadge-dot': {
+                          backgroundColor: isOnline ? '#44b700' : 'grey', // Green if online, grey if offline
+                          boxShadow: (theme) => `0 0 0 2px ${theme.palette.background.paper}`,
+                        }
+                      }}
                     >
-                      {conversation.lastMessage}
+                      <Avatar alt={user.name} src={user.avatar}> {/* Use user.avatar */} 
+                        {user.name.charAt(0)} {/* Fallback to initial */} 
+                      </Avatar>
+                    </Badge>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={user.name} // Display user name
+                    // Remove secondary text (lastMessage)
+                    // secondary={ ... }
+                  />
+                  {/* Remove timestamp and unread badge */}
+                  {/* <Box display="flex" flexDirection="column" alignItems="flex-end">
+                    <Typography variant="caption" color="text.secondary">
+                      {conversation.timestamp}
                     </Typography>
-                  }
-                />
-                <Box display="flex" flexDirection="column" alignItems="flex-end">
-                  <Typography variant="caption" color="text.secondary">
-                    {conversation.timestamp}
-                  </Typography>
-                  {conversation.unread > 0 && (
-                    <Badge 
-                      badgeContent={conversation.unread} 
-                      color="primary" 
-                      sx={{ mt: 1 }}
-                    />
-                  )}
-                </Box>
-              </StyledListItem>
-              <Divider />
-            </React.Fragment>
-          ))}
+                    {conversation.unread > 0 && (
+                      <Badge 
+                        badgeContent={conversation.unread} 
+                        color="primary" 
+                        sx={{ mt: 1 }}
+                      />
+                    )}
+                  </Box> */}
+                </StyledListItem>
+                <Divider />
+              </React.Fragment>
+            );
+          })}
         </List>
       </Box>
     </Box>

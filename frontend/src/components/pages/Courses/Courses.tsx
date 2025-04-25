@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
+import { 
   Typography,
   Box,
   Paper,
@@ -24,12 +24,12 @@ import {
   Avatar,
   Tabs,
   Tab,
-  ListItemButton
+  ListItemButton,
+  Rating, // Import Rating component
 } from '@mui/material';
 import {
   Search as SearchIcon,
   School as SchoolIcon,
-  // Description as DescriptionIcon,
   CloudDownload as CloudDownloadIcon,
   Folder as FolderIcon,
   BookmarkBorder as BookmarkIcon,
@@ -37,7 +37,8 @@ import {
   Close as CloseIcon,
   PersonOutline as PersonIcon,
   CalendarToday as CalendarIcon,
-  FileCopy as FileIcon
+  FileCopy as FileIcon,
+  Star as StarIcon, // Import Star icon for rating display
 } from '@mui/icons-material';
 
 import { useAuth } from '../../../context/AuthContext';
@@ -50,6 +51,7 @@ interface Course {
   description: string;
   department: string;
   credits: number;
+  resourceCount: number; // Added resource count
 }
 
 interface AcademicResource {
@@ -58,12 +60,17 @@ interface AcademicResource {
   uploader_name: string;
   course_code: string;
   topic: string;
+  original_filename: string; // Added original filename
   file_url: string;
-  file_type: string;
-  file_size: string;
+  file_type: string; // Now stores just the extension
+  file_size: number; // Changed to number
   description: string;
   downloads: number;
   uploaded_at: string;
+  averageRating: number; // Added average rating
+  numberOfRatings: number; // Added number of ratings
+  // Optional: Include the user's own rating if fetched
+  userRating?: number;
 }
 
 const Courses: React.FC = () => {
@@ -86,11 +93,13 @@ const Courses: React.FC = () => {
   const [uploadFormData, setUploadFormData] = useState({
     topic: '',
     description: '',
-    file_url: '',
-    file_type: 'PDF',
-    file_size: '1MB',
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // State for the selected file
   const [uploadLoading, setUploadLoading] = useState(false);
+
+  // State for user's rating in modal
+  const [currentUserRating, setCurrentUserRating] = useState<number | null>(null);
+  const [ratingLoading, setRatingLoading] = useState(false); // State for rating submission loading
 
   // Fetch all courses from backend
   useEffect(() => {
@@ -193,6 +202,9 @@ const Courses: React.FC = () => {
   // Handle opening the resource details modal
   const handleOpenResourceModal = (resource: AcademicResource) => {
     setSelectedResource(resource);
+    // TODO: Ideally, fetch the user's specific rating for this resource if not already included
+    // For now, reset or set based on fetched data if available
+    setCurrentUserRating(resource.userRating || null); 
     setIsModalOpen(true);
   };
 
@@ -200,30 +212,59 @@ const Courses: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedResource(null);
+    setCurrentUserRating(null); // Reset rating state on close
   };
 
   // Handle download action with backend connection
   const handleDownload = async () => {
     if (selectedResource) {
-      try {        
-        // Trigger the download
-        window.open(selectedResource.file_url, '_blank');
-        
-        // Update local resource download count
-        setResources(prevResources => 
-          prevResources.map(resource => 
-            resource._id === selectedResource._id 
-              ? { ...resource, downloads: resource.downloads + 1 } 
+      try {
+        // Fetch the file as a blob
+        const response = await fetch(selectedResource.file_url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const blob = await response.blob();
+
+        // Create a link element, set the filename, and trigger download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = selectedResource.original_filename; // Use the original filename
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the object URL and link
+        URL.revokeObjectURL(link.href);
+        document.body.removeChild(link);
+
+        // Optionally: Send a request to backend to increment download count if needed
+        // await fetch(`/api/resources/${selectedResource._id}/download`, { method: 'POST', credentials: 'include' });
+
+        // Update local resource download count (optimistic update)
+        setResources(prevResources =>
+          prevResources.map(resource =>
+            resource._id === selectedResource._id
+              ? { ...resource, downloads: resource.downloads + 1 }
               : resource
           )
         );
       } catch (err) {
         console.error('Error during download:', err);
+        alert('Failed to download the file.');
       }
     }
   };
   
-  // Handle upload form changes
+  // Format file size from bytes
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Handle upload form changes for text inputs
   const handleUploadFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setUploadFormData(prev => ({
@@ -231,25 +272,35 @@ const Courses: React.FC = () => {
       [name]: value
     }));
   };
-  
+
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   // Handle resource upload
   const handleUploadResource = async () => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || !selectedFile) {
+      alert("Please select a course and a file to upload.");
+      return;
+    }
     
     setUploadLoading(true);
     
+    const formData = new FormData();
+    formData.append('topic', uploadFormData.topic);
+    formData.append('description', uploadFormData.description);
+    formData.append('course_code', selectedCourse);
+    formData.append('resourceFile', selectedFile); // Append the file with the key expected by multer
+
     try {
       const response = await fetch('http://localhost:5001/api/resources/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        // Remove 'Content-Type': 'application/json'. Browser sets it for FormData.
         credentials: 'include',
-        body: JSON.stringify({
-          ...uploadFormData,
-          course_code: selectedCourse,
-          downloads: 0,
-        }),
+        body: formData, // Send FormData
       });
       
       if (!response.ok) {
@@ -267,10 +318,8 @@ const Courses: React.FC = () => {
       setUploadFormData({
         topic: '',
         description: '',
-        file_url: '',
-        file_type: 'PDF',
-        file_size: '1MB',
       });
+      setSelectedFile(null); // Reset selected file
       
       alert('Resource uploaded successfully!');
     } catch (err) {
@@ -284,6 +333,60 @@ const Courses: React.FC = () => {
   // Handle tab change
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+  };
+
+  // Handle rating change and submission
+  const handleRatingChange = async (newValue: number | null) => {
+    if (!selectedResource || newValue === null || ratingLoading) return;
+
+    setRatingLoading(true);
+    setCurrentUserRating(newValue); // Optimistically update UI
+
+    try {
+      const response = await fetch(`http://localhost:5001/api/resources/${selectedResource._id}/rate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ rating: newValue }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit rating');
+      }
+
+      const data = await response.json();
+
+      // Update the resource in the main list and the selected resource state
+      const updatedResource = { 
+        ...selectedResource, 
+        averageRating: data.averageRating, 
+        numberOfRatings: data.numberOfRatings,
+        userRating: newValue // Keep track of the user's submitted rating
+      };
+      
+      setSelectedResource(updatedResource);
+      setResources(prevResources =>
+        prevResources.map(resource =>
+          resource._id === selectedResource._id
+            ? updatedResource
+            : resource
+        )
+      );
+
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      alert(err instanceof Error ? err.message : 'Failed to submit rating');
+      // Revert optimistic update on error
+      // Check if selectedResource still exists before accessing its properties
+      if (selectedResource) {
+        setCurrentUserRating(selectedResource.userRating || null); 
+      }
+    } finally {
+      setRatingLoading(false);
+    }
   };
 
   return (
@@ -358,7 +461,8 @@ const Courses: React.FC = () => {
                       secondary={course.course_name} 
                     />                      <Chip 
                       size="small" 
-                      label={(selectedCourse === course.course_code ? resources.length : '0').toString()} 
+                      // Use the resourceCount from the fetched course data
+                      label={course.resourceCount.toString()} 
                       color={selectedCourse === course.course_code ? "primary" : "default"}
                     />
                   </ListItemButton>
@@ -452,12 +556,29 @@ const Courses: React.FC = () => {
                                     </IconButton>
                                   </Box>
                                   
+                                  {/* Display Average Rating */}
+                                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
+                                    <Rating 
+                                      name={`rating-${resource._id}`}
+                                      value={resource.averageRating} 
+                                      precision={0.5} 
+                                      readOnly 
+                                      size="small"
+                                      emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                    />
+                                    <Typography variant="caption" color="text.secondary">
+                                      ({resource.numberOfRatings})
+                                    </Typography>
+                                  </Box>
+
                                   <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: '0.8rem' }}>
-                                      {resource.file_type.charAt(0)}
+                                      {/* Display file type extension */}
+                                      {resource.file_type?.toUpperCase() || 'FILE'}
                                     </Avatar>
                                     <Typography variant="body2" color="text.secondary">
-                                      {resource.file_type} • {resource.file_size}
+                                      {/* Display formatted file size */}
+                                      {resource.file_type?.toUpperCase()} • {formatFileSize(resource.file_size)}
                                     </Typography>
                                   </Box>
                                   
@@ -530,6 +651,21 @@ const Courses: React.FC = () => {
                                       </IconButton>
                                     </Box>
                                     
+                                    {/* Display Average Rating */}
+                                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, gap: 0.5 }}>
+                                      <Rating 
+                                        name={`rating-bookmark-${resource._id}`}
+                                        value={resource.averageRating} 
+                                        precision={0.5} 
+                                        readOnly 
+                                        size="small"
+                                        emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                                      />
+                                      <Typography variant="caption" color="text.secondary">
+                                        ({resource.numberOfRatings})
+                                      </Typography>
+                                    </Box>
+
                                     <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                                       <Avatar sx={{ bgcolor: 'primary.main', width: 28, height: 28, fontSize: '0.8rem' }}>
                                         {resource.file_type.charAt(0)}
@@ -639,13 +775,14 @@ const Courses: React.FC = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <FileIcon sx={{ mr: 1 }} color="primary" />
                     <Typography variant="body2">
-                      File Type: <Chip label={selectedResource.file_type} size="small" />
+                      File Type: <Chip label={selectedResource.file_type?.toUpperCase()} size="small" />
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <CloudDownloadIcon sx={{ mr: 1 }} color="primary" />
                     <Typography variant="body2">
-                      File Size: {selectedResource.file_size}
+                      {/* Display formatted file size */}
+                      File Size: {formatFileSize(selectedResource.file_size)}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -654,12 +791,42 @@ const Courses: React.FC = () => {
                       Downloads: {selectedResource.downloads}
                     </Typography>
                   </Box>
+
+                  {/* Add Rating Section */}
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle1" gutterBottom>Rate this Resource</Typography>
+                  <Rating
+                    name="user-rating"
+                    value={currentUserRating}
+                    onChange={(_event, newValue) => {
+                      handleRatingChange(newValue);
+                    }}
+                    precision={1} // Allow only whole stars for user input
+                    size="large"
+                    disabled={ratingLoading}
+                  />
+                   {ratingLoading && <Typography variant="caption" sx={{ ml: 1 }}>Submitting...</Typography>}
                 </Grid>
                 
                 <Grid item xs={12} md={4}>
                   <Paper variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                     <Typography variant="subtitle1" gutterBottom>Resource Information</Typography>
                     
+                    {/* Display Average Rating in Modal */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 0.5 }}>
+                      <Rating 
+                        name={`rating-modal-${selectedResource._id}`}
+                        value={selectedResource.averageRating} 
+                        precision={0.5} 
+                        readOnly 
+                        size="small"
+                        emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        ({selectedResource.numberOfRatings} ratings)
+                      </Typography>
+                    </Box>
+
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                       <PersonIcon sx={{ mr: 1 }} fontSize="small" color="primary" />
                       <Typography variant="body2">
@@ -761,31 +928,24 @@ const Courses: React.FC = () => {
               rows={4}
               required
             />
-            <TextField
-              label="File URL"
-              name="file_url"
-              value={uploadFormData.file_url}
-              onChange={handleUploadFormChange}
+            {/* Replace text fields with a file input */}
+            <Button
+              variant="contained"
+              component="label"
               fullWidth
-              required
-              helperText="In a real app, this would be a file upload field"
-            />
-            <TextField
-              label="File Type"
-              name="file_type"
-              value={uploadFormData.file_type}
-              onChange={handleUploadFormChange}
-              fullWidth
-              required
-            />
-            <TextField
-              label="File Size"
-              name="file_size"
-              value={uploadFormData.file_size}
-              onChange={handleUploadFormChange}
-              fullWidth
-              required
-            />
+            >
+              Choose File
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+              />
+            </Button>
+            {selectedFile && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected file: {selectedFile.name} ({formatFileSize(selectedFile.size)})
+              </Typography>
+            )}
           </Box>
         </DialogContent>
         <DialogActions>

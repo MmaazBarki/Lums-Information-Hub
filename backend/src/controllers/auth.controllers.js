@@ -119,7 +119,7 @@ export const logout = (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { role, name, graduation_year, department, alternate_email  } = req.body;
+        const { role, name, batch, department, alternate_email, bio, profilePic  } = req.body;
         const userId = req.user._id;
 
         const user = await User.findById(userId);
@@ -141,11 +141,11 @@ export const updateProfile = async (req, res) => {
             updated_user_info.profile_data.name = name;
         }
 
-        if (graduation_year) {
+        if (batch) {
             if (!updated_user_info.profile_data) {
                 updated_user_info.profile_data = {};
             }
-            updated_user_info.profile_data.graduation_year = graduation_year;
+            updated_user_info.profile_data.batch = batch;
         }
 
         if (department) {
@@ -162,6 +162,14 @@ export const updateProfile = async (req, res) => {
             updated_user_info.profile_data.alternate_email = alternate_email;
         }
 
+        if(bio)
+        {
+            if (!updated_user_info.profile_data) {
+                updated_user_info.profile_data = {};
+            }
+            updated_user_info.profile_data.bio = bio;
+        }
+
         // Update the user in the database
         const updatedUser = await User.findByIdAndUpdate(userId, updated_user_info, { new: true });
 
@@ -169,10 +177,10 @@ export const updateProfile = async (req, res) => {
 
 
         // profile picture feature implementation will be in the future
-        // if (profilePic) {
-            // const uploadResponse = await cloudinary.uploader.upload(profilePic);
-            // updates.profilePic = uploadResponse.secure_url;
-        // }
+        if (profilePic) {
+            const uploadResponse = await cloudinary.uploader.upload(profilePic);
+            updates.profilePic = uploadResponse.secure_url;
+        }
 
 
         // Implementation for CV upload will be in the future
