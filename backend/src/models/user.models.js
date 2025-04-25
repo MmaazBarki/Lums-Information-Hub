@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-//schema
+
 const user = new mongoose.Schema(
     {
         email: {
@@ -53,9 +53,9 @@ const user = new mongoose.Schema(
             required: false,
         },
         profile_data: {
-            type: mongoose.Schema.Types.Mixed, // JSON object for students/alumni
+            type: mongoose.Schema.Types.Mixed,
             default: function () {
-                return this.role === "admin" ? undefined : {}; // Only include profile_data for students/alumni
+                return this.role === "admin" ? undefined : {};
             },
         },
     },
