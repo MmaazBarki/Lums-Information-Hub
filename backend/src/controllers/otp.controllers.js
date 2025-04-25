@@ -74,14 +74,15 @@ export const verifyPasswordResetOTP = async (req, res) => {
         }
 
         const otpRecord = await UserOTPVerification.findOne({ userID: userId });
+        console.log("Fetched OTP record:", otpRecord);
         if (!otpRecord) {
             return res.status(400).json({ message: "Invalid or expired OTP" });
         }
 
-        if (otpRecord.expiredAt < Date.now()) {
-            await UserOTPVerification.deleteMany({ userID: userId });
-            return res.status(400).json({ message: "OTP has expired" });
-        }
+        // if (otpRecord.expiredAt < Date.now()) {
+        //     await UserOTPVerification.deleteMany({ userID: userId });
+        //     return res.status(400).json({ message: "OTP has expired" });
+        // }
 
         const isMatch = await bcrypt.compare(otp, otpRecord.otp);
         if (!isMatch) return res.status(400).json({ message: "Incorrect OTP" });
