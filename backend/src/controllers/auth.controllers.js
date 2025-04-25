@@ -2,6 +2,8 @@ import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js"
 import  bcrypt from "bcryptjs"
+import UserOTPVerification from "../models/userOtpVerification.models.js";
+// import router from "../routes/auth.routes.js";
 
 export const signup = async (req, res) => {
     const { role, email, password, profile_data } = req.body;
@@ -55,7 +57,7 @@ export const signup = async (req, res) => {
             profile_data: finalProfileData,
         });
 
-        await newUser.save();
+        await newUser.save()
 
         // Generate Token
         generateToken(newUser._id, res);
@@ -72,7 +74,6 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
-
 
 
 export const login = async (req, res) => {

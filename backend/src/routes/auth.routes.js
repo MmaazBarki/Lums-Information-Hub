@@ -2,6 +2,7 @@ import express from "express"
 import { login, logout, signup, updateProfile, updatePassword, checkAuth } from "../controllers/auth.controllers.js"
 import { protectRoute } from "../middleware/auth.middleware.js"
 
+
 const router = express.Router()
 
 router.post("/signup", signup)
