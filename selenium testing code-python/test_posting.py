@@ -1,4 +1,3 @@
-# filepath: c:\Users\maazb\OneDrive\Desktop\Software Engineering\selenium testing code-python\test_posting.py
 import unittest
 import pytest
 import time
